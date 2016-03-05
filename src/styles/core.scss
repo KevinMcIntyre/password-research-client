@@ -1,0 +1,55 @@
+:global {
+  @import 'base';
+  @import 'vendor/normalize';
+
+  // Some best-practice CSS that's useful for most apps
+  // Just remove them if they're not what you want
+  html {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #F5F5F5;
+  }
+
+  *,
+  *:before,
+  *:after {
+    box-sizing: inherit;
+  }
+
+  .navbar {
+    border-radius: 0;
+  }
+  .navbar-inverse {
+    background: #B73333;
+    border-color: #B73333;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.12);
+  }
+
+  .navbar-inverse .navbar-nav>li>a {
+    color: #ffffff;
+  }
+  .navbar-inverse .navbar-brand {
+    color: #ffffff;
+  }
+
+  .navbar-inverse .navbar-nav>li>a:hover {
+    color: #cccccc;
+  }
+  .navbar-inverse .navbar-brand:hover {
+    color: #cccccc;
+  }
+  .navbar-inverse .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.active>a:focus, .navbar-inverse .navbar-nav>.active>a:hover {
+    color: #fff;
+    background-color: #B73333;
+  }
+
+  .btn {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.12);
+  }
+}
