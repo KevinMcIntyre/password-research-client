@@ -27,3 +27,64 @@
 .uploadModalFooter {
   margin-top: 0;
 }
+
+.fileDrop {
+  display: inline-block;
+}
+
+.fileDropContainer {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.dropzone {
+  height: 100vh;
+  width: 100%;
+}
+
+.dropzoneActive {
+  border-color: black;
+  border-style: dashed;
+  border-radius: 3px;
+  background-color: #dfdfdf;
+  position: absolute;
+}
+
+.selectDiv {
+ display: inline-block;
+}
+
+.selectContainer {
+  text-align: center;
+}
+
+.previewButtons {
+  margin-top: 5px;
+}
+
+.closeButton {
+  color: #ff5549;
+  font-size: 15px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.saveButton {
+  color: #1cd126;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.saveButton:hover {
+  color: green;
+  font-size: 20px;
+}
+
+.closeButton:hover {
+  color: red;
+  font-size: 20px;
+}
+
+.imagePreview {
+  display: inline-block;
+}

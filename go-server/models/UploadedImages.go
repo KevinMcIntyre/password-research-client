@@ -5,9 +5,9 @@ import (
   "time"
 )
 
-type ImageUploadRequest struct {
+type ImageUploadResponse struct {
   UserId    int
-  ImageUri  string
+  Aliases []string
 }
 
 type ImageDiscardRequest struct {

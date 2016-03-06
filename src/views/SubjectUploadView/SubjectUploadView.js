@@ -3,7 +3,11 @@ import { connect } from 'react-redux';
 import { Button, Modal } from 'react-bootstrap';
 import { actions as viewActions } from '../../redux/modules/subjectUploadView';
 import PassImage from '../../components/PassImage/PassImage';
+import ImagePreview from './ImagePreview.js';
 import classes from './SubjectUploadView.scss';
+import Dropzone from 'react-dropzone';
+import Select from 'react-select'
+
 // We define mapStateToProps where we'd normally use
 // the @connect decorator so the data requirements are clear upfront, but then
 // export the decorated component after the main class definition so
@@ -16,9 +20,10 @@ export class SubjectUploadView extends React.Component {
   static propTypes = {
     viewState: PropTypes.object.isRequired,
     toggleAddPicModal: PropTypes.func.isRequired,
-    setUploadImageSrc: PropTypes.func.isRequired,
+    setUploadImages: PropTypes.func.isRequired,
     postImage: PropTypes.func.isRequired,
-    cancelImage: PropTypes.func.isRequired,
+    newPostImage: PropTypes.func.isRequired,
+    discardImage: PropTypes.func.isRequired,
     saveImage: PropTypes.func.isRequired,
     loadPassImages: PropTypes.func.isRequired
   };
@@ -27,8 +32,8 @@ export class SubjectUploadView extends React.Component {
     super();
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleImage = this.handleImage.bind(this);
-    this.cancelImage = this.cancelImage.bind(this);
-    this.saveImage = this.saveImage.bind(this);
+    this.onDrop = this.onDrop.bind(this);
+    this.openDropzone = this.openDropzone.bind(this);
   }
 
   handleSubmit(e) {
@@ -47,93 +52,89 @@ export class SubjectUploadView extends React.Component {
     reader.readAsDataURL(file);
   }
 
-  cancelImage() {
-    this.props.cancelImage(1, this.props.viewState.get('uploadImageSrc'))
-  }
-
-  saveImage() {
-    this.props.saveImage(1, this.props.viewState.get('uploadImageSrc'))
-    this.props.cancelImage(1, this.props.viewState.get('uploadImageSrc'))
+  onDrop(files) {
+    this.props.newPostImage(1, files);
   }
 
   shouldComponentUpdate(nextProps) {
-    return ((nextProps.viewState.get('userPassImages') !== this.props.viewState.get('userPassImages')) ||(nextProps.viewState.get('uploadImageSrc') !== this.props.viewState.get('uploadImageSrc'))) || (nextProps.viewState.get('showAddPicModal') !== this.props.viewState.get('showAddPicModal'));
+    return (
+      (nextProps.viewState.get('userPassImages') !== this.props.viewState.get('userPassImages')) ||
+      (nextProps.viewState.get('uploadImages') !== this.props.viewState.get('uploadImages')) ||
+      (nextProps.viewState.get('update') !== this.props.viewState.get('update'))
+    );
   }
 
   componentWillMount() {
     this.props.loadPassImages(1);
   }
 
+  openDropzone() {
+    this.refs.dropzone.open();
+  }
+
   renderPassImages (passImageAliases) {
     return passImageAliases.map(image => {
-      return <PassImage key={image} img={(`http://localhost:7000/image/${image}`)}/>
+      return <PassImage key={image} img={`http://localhost:7000/image/${image}`}/>
     });
   }
 
-  render() {
-    let modalBody;
-    let modalFooter;
-    if (!this.props.viewState.get('uploadImageSrc')) {
-      modalBody = (
+  renderImagePreview(imageMap) {
+    const images = imageMap.get(1);
+    if (!images || images.length < 1) {
+      return (
         <div>
-          <h4 className={classes.centeredModalTitle}>Select a picture from your computer.</h4>
-          <br/>
-          <div className={classes.centeredDiv}>
-            <form onSubmit={this.handleSubmit} encType='multipart/form-data'>
-              <input type='file' onChange={this.handleImage}/>
-            </form>
+          <div>
+            <h4>To add additional images to this collection, </h4>
+            <h4>drag them onto this page or click the 'Add New Pictures' button</h4>
           </div>
-        </div>
-      );
-      modalFooter = (
-        <div className={classes.centeredModalButtonGroup}>
-          <Button onClick={this.props.toggleAddPicModal}>Close</Button>
+          <Button bsSize={"large"} bsStyle={"primary"} onClick={this.openDropzone}>Add New Pictures</Button>
         </div>
       );
     } else {
-      modalBody = (
+      return (
         <div>
-          <div className={classes.outerPictureBody}>
-            <div className={classes.pictureBody}>
-              <h5>Image preview:</h5>
-              <PassImage key={'prev'} img={('http://localhost:7000/upload/preview/' + this.props.viewState.get('uploadImageSrc'))}/>
-            </div>
+          <h5>These are how the newly uploaded images will appear when testing.</h5>
+          <p>
+            Images are not added to a collection until they have been confirmed.
+          </p>
+          <div className={classes.uploadedImages}>
+            {
+              images.map(image => {
+                return <ImagePreview key={image} img={image} saveImage={this.props.saveImage} discardImage={this.props.discardImage}/>
+              })
+            }
           </div>
-        </div>
-      );
-      modalFooter = (
-        <div className={classes.centeredModalButtonGroup}>
-          <Button bsStyle="danger" onClick={this.cancelImage}>Discard</Button>
-          <Button bsStyle="success" onClick={this.saveImage}>Save</Button>
         </div>
       );
     }
+  }
+
+  render() {
     return (
-      <div className='container text-center'>
-        <div>
-          <h3>Hello Johnny!</h3>
-        </div>
-        <div>
-          <h1>These are your currently uploaded pass-images:</h1>
-          <div className={classes.uploadedImages}>
-            {this.renderPassImages(this.props.viewState.get("userPassImages"))}
+      <Dropzone ref="dropzone"
+                className={classes.dropzone}
+                activeClassName={classes.dropzoneActive}
+                onDrop={this.onDrop}
+                disableClick={true}
+                accept={"image/jpeg,image/jpg,image/png"}>
+        <div className='container text-center'>
+          <div>
+            <h3>Add New Pass-Images</h3>
+          </div>
+          <div>
+            <h4>Select an image collection: </h4>
+          </div>
+          <div>
+            <h4>These are the pass-images currently uploaded:</h4>
+            <div className={classes.uploadedImages}>
+              {this.renderPassImages(this.props.viewState.get("userPassImages"))}
+            </div>
+          </div>
+          <div className={classes.newPicDiv}>
+            {this.renderImagePreview(this.props.viewState.get('uploadImages'))}
           </div>
         </div>
-        <div className={classes.newPicDiv}>
-          <Button bsSize={"large"} bsStyle={"primary"} onClick={this.props.toggleAddPicModal}>Add New Pictures</Button>
-        </div>
-        <Modal bsSize={"small"} show={this.props.viewState.get('showAddPicModal')}>
-          <Modal.Header>
-            <Modal.Title className={classes.centeredModalTitle}>Add a New Picture</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {modalBody}
-          </Modal.Body>
-          <Modal.Footer className={classes.uploadModalFooter}>
-            {modalFooter}
-          </Modal.Footer>
-        </Modal>
-      </div>
+      </Dropzone>
     );
   }
 }

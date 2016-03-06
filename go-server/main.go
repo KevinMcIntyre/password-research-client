@@ -8,64 +8,78 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/negroni"
-	"github.com/disintegration/imaging"
 	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
-	"github.com/vincent-petithory/dataurl"
-	"io/ioutil"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 )
 
 var db *sql.DB = setupDatabase()
 
 func uploadImageHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	decoder := json.NewDecoder(r.Body)
+	var (
+		status int
+		err    error
+	)
 
-	var imageUpload models.ImageUploadRequest
+	defer func() {
+		if nil != err {
+			http.Error(w, err.Error(), status)
+		}
+	}()
 
-	err := decoder.Decode(&imageUpload)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// parse request
+	const _24K = (1 << 20) * 24
+	if err = r.ParseMultipartForm(_24K); nil != err {
+		status = http.StatusInternalServerError
 		return
 	}
 
-	dataURL, err := dataurl.Decode(strings.NewReader(imageUpload.ImageUri))
+	uploadResponse := new(models.ImageUploadResponse)
 
-	defer r.Body.Close()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+  uploadResponse.UserId, err = strconv.Atoi(r.MultipartForm.Value["userId"][0])
+
+  for _, fileHeaders := range r.MultipartForm.File {
+		for _, header := range fileHeaders {
+			// open uploaded
+			var inFile multipart.File
+			if inFile, err = header.Open(); nil != err {
+				status = http.StatusInternalServerError
+				return
+			}
+
+			// open destination
+			var outFile *os.File
+			fileName := "./upload/" + header.Filename
+			if outFile, err = os.Create(fileName); nil != err {
+				status = http.StatusInternalServerError
+				return
+			}
+
+			// 32K buffer copy
+			if _, err = io.Copy(outFile, inFile); nil != err {
+				status = http.StatusInternalServerError
+				return
+			}
+
+			utils.ResizeImage(fileName)
+
+			imageBytes := utils.ImageFileToByteArray(fileName)
+
+			fileType := http.DetectContentType(imageBytes)
+
+			imageAlias := models.SaveUpload(db, true, uploadResponse.UserId, imageBytes, fileType)
+			uploadResponse.Aliases = append(uploadResponse.Aliases, imageAlias)
+
+      os.Remove(fileName)
+		}
 	}
 
-	var fileName string
-	if dataURL.ContentType() == "image/png" || dataURL.ContentType() == "image/jpg" || dataURL.ContentType() == "image/jpeg" {
-		fileName = "uploaded-img-" + strconv.Itoa(imageUpload.UserId) + "." + strings.Split(dataURL.ContentType(), "/")[1]
-	} else {
-		fmt.Println()
-		// handle error
-	}
-
-	ioutil.WriteFile(fileName, dataURL.Data, 0644)
-
-	img, err := imaging.Open(fileName)
-	croppedImg := imaging.CropCenter(imaging.Fit(img, 200, 200, imaging.Linear), 120, 120)
-	err = imaging.Save(croppedImg, fileName)
-	if err != nil {
-		// handle error
-	}
-
-	imageAlias := models.SaveUpload(db, true, imageUpload.UserId, utils.ImageFileToByteArray(fileName), dataURL.ContentType())
-
-	var jsonArray []string
-
-	jsonArray = append(jsonArray, imageAlias)
-
-	jsonResponse, err := json.Marshal(jsonArray)
+	jsonResponse, err := json.Marshal(uploadResponse)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -78,30 +92,30 @@ func uploadImageHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 }
 
 func discardUploadImageHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-  decoder := json.NewDecoder(r.Body)
-  var discardRequest models.ImageDiscardRequest
-  err := decoder.Decode(&discardRequest)
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-    return
-  }
+	decoder := json.NewDecoder(r.Body)
+	var discardRequest models.ImageDiscardRequest
+	err := decoder.Decode(&discardRequest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-  models.DiscardImage(db, discardRequest.UserId, discardRequest.ImageAlias);
+	models.DiscardImage(db, discardRequest.UserId, discardRequest.ImageAlias)
 
-  var jsonArray []string
+	var jsonArray []string
 
-  jsonArray = append(jsonArray, "swag")
+	jsonArray = append(jsonArray, "swag")
 
-  jsonResponse, err := json.Marshal(jsonArray)
+	jsonResponse, err := json.Marshal(jsonArray)
 
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-    return
-  }
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-  w.Header().Set("Content-Type", "application/json")
-  w.Header().Set("Content-Length", strconv.Itoa(len(jsonResponse)))
-  w.Write(jsonResponse)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len(jsonResponse)))
+	w.Write(jsonResponse)
 }
 
 func uploadPreviewHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -121,71 +135,71 @@ func uploadPreviewHandler(w http.ResponseWriter, r *http.Request, ps httprouter.
 }
 
 func saveImageHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-  decoder := json.NewDecoder(r.Body)
+	decoder := json.NewDecoder(r.Body)
 
-  var saveRequest models.SaveImageRequest
-  err := decoder.Decode(&saveRequest)
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-    return
-  }
+	var saveRequest models.SaveImageRequest
+	err := decoder.Decode(&saveRequest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-  alias := models.SaveImage(db, saveRequest.UserId, saveRequest.ImageAlias);
+	alias := models.SaveImage(db, saveRequest.UserId, saveRequest.ImageAlias)
 
-  var jsonArray []string
+	var jsonArray []string
 
-  jsonArray = append(jsonArray, alias)
+	jsonArray = append(jsonArray, alias)
 
-  jsonResponse, err := json.Marshal(jsonArray)
+	jsonResponse, err := json.Marshal(jsonArray)
 
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-    return
-  }
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-  w.Header().Set("Content-Type", "application/json")
-  w.Header().Set("Content-Length", strconv.Itoa(len(jsonResponse)))
-  w.Write(jsonResponse)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len(jsonResponse)))
+	w.Write(jsonResponse)
 }
 
 func getUserImagesHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-  decoder := json.NewDecoder(r.Body)
+	decoder := json.NewDecoder(r.Body)
 
-  var passImageRequest models.UserPassImageRequest
-  err := decoder.Decode(&passImageRequest)
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-    return
-  }
+	var passImageRequest models.UserPassImageRequest
+	err := decoder.Decode(&passImageRequest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-  passImages := models.GetPassImages(db, passImageRequest.UserId);
+	passImages := models.GetPassImages(db, passImageRequest.UserId)
 
-  jsonResponse, _ := json.Marshal(passImages)
+	jsonResponse, _ := json.Marshal(passImages)
 
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-    return
-  }
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-  w.Header().Set("Content-Type", "application/json")
-  w.Header().Set("Content-Length", strconv.Itoa(len(jsonResponse)))
-  w.Write(jsonResponse)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len(jsonResponse)))
+	w.Write(jsonResponse)
 }
 
 func getImageHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-  var imageBytes string
-  var imageType string
-  err := db.QueryRow("SELECT image, image_type FROM saved_images WHERE alias=$1", ps.ByName("alias")).Scan(&imageBytes, &imageType)
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-    return
-  }
-  buffer := bytes.NewBufferString(imageBytes)
-  w.Header().Set("Content-Type", imageType)
-  w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
-  if _, err := w.Write(buffer.Bytes()); err != nil {
-    fmt.Println("unable to write image.")
-  }
+	var imageBytes string
+	var imageType string
+	err := db.QueryRow("SELECT image, image_type FROM saved_images WHERE alias=$1", ps.ByName("alias")).Scan(&imageBytes, &imageType)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	buffer := bytes.NewBufferString(imageBytes)
+	w.Header().Set("Content-Type", imageType)
+	w.Header().Set("Content-Length", strconv.Itoa(len(buffer.Bytes())))
+	if _, err := w.Write(buffer.Bytes()); err != nil {
+		fmt.Println("unable to write image.")
+	}
 }
 
 func testHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -201,13 +215,13 @@ func main() {
 
 	router := httprouter.New()
 
-  router.POST("/upload", uploadImageHandler)
+	router.POST("/upload", uploadImageHandler)
 	router.POST("/upload/discard", discardUploadImageHandler)
-  router.GET("/upload/preview/:alias", uploadPreviewHandler)
+	router.GET("/upload/preview/:alias", uploadPreviewHandler)
 
-  router.POST("/save/image", saveImageHandler)
-  router.GET("/image/:alias", getImageHandler)
-  router.POST("/images", getUserImagesHandler)
+	router.POST("/save/image", saveImageHandler)
+	router.GET("/image/:alias", getImageHandler)
+	router.POST("/images", getUserImagesHandler)
 
 	n := negroni.New(
 		negroni.NewRecovery(),

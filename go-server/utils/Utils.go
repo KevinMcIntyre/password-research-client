@@ -3,6 +3,7 @@ import (
   "os"
   "fmt"
   "bufio"
+  "github.com/disintegration/imaging"
 )
 
 func ImageFileToByteArray(fileName string) []byte {
@@ -23,4 +24,13 @@ func ImageFileToByteArray(fileName string) []byte {
   _, err = buffer.Read(bytes)
 
   return bytes
+}
+
+func ResizeImage(fileName string) {
+  img, err := imaging.Open(fileName)
+  croppedImg := imaging.CropCenter(imaging.Fit(img, 200, 200, imaging.Linear), 120, 120)
+  err = imaging.Save(croppedImg, fileName)
+  if err != nil {
+    // handle error
+  }
 }

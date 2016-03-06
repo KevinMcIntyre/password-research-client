@@ -10,9 +10,11 @@ const agent = _agent_promise(_agent, _promise);
 // Constants
 // ------------------------------------
 const TOGGLE_ADD_PIC_MODAL = 'TOGGLE_ADD_PIC_MODAL';
-const SET_UPLOAD_IMAGE_SRC = 'SET_UPLOAD_IMAGE_SRC';
+const SET_UPLOAD_IMAGES = 'SET_UPLOAD_IMAGES';
 const POST_IMAGE = 'POST_IMAGE';
-const CANCEL_UPLOAD_IMAGE = 'CANCEL_UPLOAD_IMAGE';
+const NEW_POST_IMAGE = 'NEW_POST_IMAGE';
+const DISCARD_UPLOAD_IMAGE = 'DISCARD_UPLOAD_IMAGE';
+const SPLICE_UPLOAD_IMAGE = 'SPLICE_UPLOAD_IMAGE';
 const SAVE_IMAGE = 'SAVE_IMAGE';
 const SAVE_MULTIPLE_IMAGES = 'SAVE_MULTIPLE IMAGES';
 
@@ -21,7 +23,26 @@ const SAVE_MULTIPLE_IMAGES = 'SAVE_MULTIPLE IMAGES';
 // ------------------------------------
 export const toggleAddPicModal = () => ({type: TOGGLE_ADD_PIC_MODAL});
 
-export const setUploadImageSrc = (src) => ({type: SET_UPLOAD_IMAGE_SRC, src: src});
+export const setUploadImages = (userId, aliases) => ({type: SET_UPLOAD_IMAGES, userId: userId, aliases: aliases});
+
+export const newPostImage = (userId, files) => {
+  return dispatch => {
+    let req = agent.post('http://localhost:7000/upload').field('userId', userId);
+    files.forEach((file)=> {
+      req.attach(file.name, file);
+    });
+    return req.set({
+        'Access-Control-Allow-Origin': 'localhost:7000'
+      })
+      .end()
+      .then(function(res) {
+        let resJson = JSON.parse(res.text);
+        dispatch(setUploadImages(resJson.UserId, resJson.Aliases));
+      }, function(err) {
+        console.log(err);
+      });
+  };
+};
 
 export const postImage = (userId, imageUri) => {
   return dispatch => {
@@ -36,21 +57,24 @@ export const postImage = (userId, imageUri) => {
       })
       .end()
       .then(function(res) {
-        dispatch(setUploadImageSrc(res.text.split('"')[1]));
+        dispatch(setUploadImages(res.text.split('"')[1]));
       }, function(err) {
         console.log(err);
       });
   };
 };
 
-export const cancelImage = (userId, imageAlias) => {
+const spliceUploadImage = (userId, alias) => ({type: SPLICE_UPLOAD_IMAGE, userId: userId, alias: alias});
+
+
+export const discardImage = (userId, alias) => {
   return dispatch => {
-    dispatch(setUploadImageSrc(undefined));
+    dispatch(spliceUploadImage(userId, alias));
     return agent
       .post('http://localhost:7000/upload/discard')
       .send(JSON.stringify({
         'userId': userId,
-        'imageAlias': imageAlias
+        'imageAlias': alias
       }))
       .set({
         'Access-Control-Allow-Origin': 'localhost:7000'
@@ -110,11 +134,12 @@ export const loadPassImages = (userId) => {
 
 export const actions = {
   toggleAddPicModal,
-  setUploadImageSrc,
+  setUploadImages,
   postImage,
+  newPostImage,
   saveImage,
   saveMultipleImages,
-  cancelImage,
+  discardImage,
   loadPassImages
 };
 
@@ -123,8 +148,9 @@ export const actions = {
 // ------------------------------------
 const subjectUploadViewState = Map({
   'showAddPicModal': false,
-  'uploadImageSrc': undefined,
-  'userPassImages': []
+  'uploadImages': Map({}),
+  'userPassImages': [],
+  'update': 0
 });
 // ------------------------------------
 // Reducer
@@ -135,11 +161,23 @@ export default function subjectUploadViewReducer(state = subjectUploadViewState,
       const toggleState = state.get('showAddPicModal');
       return state.set('showAddPicModal', !toggleState);
     }
-    case SET_UPLOAD_IMAGE_SRC: {
-      return state.set('uploadImageSrc', action.src);
+    case SET_UPLOAD_IMAGES: {
+      const uploadMap = state.get('uploadImages');
+      return state.set('uploadImages', uploadMap.set(action.userId, action.aliases));
     }
-    case CANCEL_UPLOAD_IMAGE: {
+    case DISCARD_UPLOAD_IMAGE: {
       return state;
+    }
+    case SPLICE_UPLOAD_IMAGE: {
+      const uploadMap = state.get('uploadImages');
+      let aliases = uploadMap.get(action.userId);
+      const index = aliases.indexOf(action.alias);
+      if (index > -1) {
+        aliases.splice(index, 1);
+      }
+      return state
+        .set('uploadImages', uploadMap.set(action.userId, aliases))
+        .set('update', state.get('update') + 1);
     }
     case SAVE_IMAGE: {
       return state.set;
@@ -149,6 +187,9 @@ export default function subjectUploadViewReducer(state = subjectUploadViewState,
       return state.set('userPassImages', currentImages.concat(action.images))
     }
     case POST_IMAGE: {
+      return state;
+    }
+    case NEW_POST_IMAGE: {
       return state;
     }
     default: {
