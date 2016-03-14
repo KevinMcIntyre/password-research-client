@@ -110,6 +110,10 @@ export class SubjectUploadView extends React.Component {
   }
 
   render() {
+    const options = [
+      { value: 'one', label: 'One' },
+      { value: 'two', label: 'Two' }
+    ];
     return (
       <Dropzone ref="dropzone"
                 className={classes.dropzone}
@@ -119,10 +123,13 @@ export class SubjectUploadView extends React.Component {
                 accept={"image/jpeg,image/jpg,image/png"}>
         <div className='container text-center'>
           <div>
-            <h3>Add New Pass-Images</h3>
+            <h2>Add New Pass-Images</h2>
           </div>
-          <div>
+          <div className={classes.collectionSelect}>
             <h4>Select an image collection: </h4>
+            <Select
+              options={options}
+            />
           </div>
           <div>
             <h4>These are the pass-images currently uploaded:</h4>

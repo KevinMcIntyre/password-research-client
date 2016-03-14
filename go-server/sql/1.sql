@@ -6,7 +6,7 @@
 
 CREATE TABLE subjects (
   id            BIGSERIAL     NOT NULL,
-  username      VARCHAR(30)   NOT NULL,
+  username      VARCHAR(30),
   email         VARCHAR(30)   UNIQUE,
   password      VARCHAR(60),
   pin_number    VARCHAR(10),

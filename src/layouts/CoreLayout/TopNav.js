@@ -14,11 +14,17 @@ export default class TopNav extends React.Component {
           <LinkContainer to={{pathname: '/'}}>
             <NavItem eventKey={1}>Home</NavItem>
           </LinkContainer>
-          <LinkContainer to={{pathname: '/upload'}}>
-            <NavItem eventKey={2}>Upload</NavItem>
+          <LinkContainer to={{pathname: '/subjects'}}>
+            <NavItem eventKey={2}>Subjects</NavItem>
+          </LinkContainer>
+          <LinkContainer to={{pathname: '/collections'}}>
+            <NavItem eventKey={3}>Collections</NavItem>
           </LinkContainer>
           <LinkContainer to={{pathname: '/test'}}>
-            <NavItem eventKey={3}>Test</NavItem>
+            <NavItem eventKey={4}>Test</NavItem>
+          </LinkContainer>
+          <LinkContainer to={{pathname: '/admin'}}>
+            <NavItem eventKey={5}>Administration</NavItem>
           </LinkContainer>
         </Nav>
       </Navbar.Collapse>
@@ -27,7 +33,9 @@ export default class TopNav extends React.Component {
       <Navbar inverse={true} className='nav'>
         <Navbar.Header>
           <Navbar.Brand>
-            <a href='#'>Temple University Password Research</a>
+            <LinkContainer to={{pathname: '/'}}>
+              <a>Temple University Password Research</a>
+            </LinkContainer>
           </Navbar.Brand>
           <Navbar.Toggle />
         </Navbar.Header>

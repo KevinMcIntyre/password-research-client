@@ -202,6 +202,35 @@ func getImageHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 }
 
+func newSubjectHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+  decoder := json.NewDecoder(r.Body)
+
+  var newSubjectRequest models.NewSubjectRequest
+  err := decoder.Decode(&newSubjectRequest)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  validationResults, birthday := newSubjectRequest.Validate()
+
+  var jsonResponse []byte;
+  var jsonMap map[string]interface{};
+
+  if (len(validationResults) == 0) {
+    newSubjectId := models.SaveNewSubject(db, newSubjectRequest, birthday)
+    jsonMap = map[string]interface{}{"id": newSubjectId}
+  } else {
+    jsonMap = map[string]interface{}{"errors": validationResults}
+  }
+
+  jsonResponse, _ = json.Marshal(jsonMap)
+
+  w.Header().Set("Content-Type", "application/json")
+  w.Header().Set("Content-Length", strconv.Itoa(len(jsonResponse)))
+  w.Write(jsonResponse)
+}
+
 func testHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	// TODO
 }
@@ -214,6 +243,8 @@ func main() {
 	defer db.Close()
 
 	router := httprouter.New()
+
+  router.POST("/subject/new", newSubjectHandler)
 
 	router.POST("/upload", uploadImageHandler)
 	router.POST("/upload/discard", discardUploadImageHandler)

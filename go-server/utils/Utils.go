@@ -4,6 +4,8 @@ import (
   "fmt"
   "bufio"
   "github.com/disintegration/imaging"
+  "strings"
+  "regexp"
 )
 
 func ImageFileToByteArray(fileName string) []byte {
@@ -34,3 +36,16 @@ func ResizeImage(fileName string) {
     // handle error
   }
 }
+
+func IsEmptyString(str string) bool {
+  if len(strings.TrimSpace(str)) < 1 {
+    return true
+  }
+  return false
+}
+
+func IsValidEmail(email string) bool {
+  Re := regexp.MustCompile(`.+\@.+\..+`)
+  return Re.MatchString(email)
+}
+
