@@ -1,5 +1,6 @@
 import { applyMiddleware, compose, createStore } from 'redux';
 import { syncHistory } from 'react-router-redux';
+import promiseMiddleware from 'redux-promise';
 import thunk from 'redux-thunk';
 import rootReducer from './rootReducer';
 
@@ -15,7 +16,7 @@ export default function configureStore({ initialState = {}, history }) {
   const routerMiddleware = syncHistory(history);
 
   // Compose final middleware and use devtools in debug environment
-  let middleware = applyMiddleware(thunk, routerMiddleware);
+  let middleware = applyMiddleware(thunk, promiseMiddleware, routerMiddleware);
   if (__DEBUG__) middleware = withDevTools(middleware);
 
   // Create final store and subscribe router in debug env ie. for devtools

@@ -22,7 +22,7 @@ export default class ImageMatrix extends React.Component {
 
     if (this.props.noneEnabled) {
       matrix.push(
-        <div key={(i+1)}>
+        <div key={(i + 1)}>
           <Button bsSize={"large"} bsStyle={"primary"} className={classes.imageNone}>None of my pass-images are displayed here</Button>
         </div>
       );

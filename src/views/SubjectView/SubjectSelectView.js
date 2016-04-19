@@ -1,31 +1,42 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
+import { store } from '../../main';
+import { actions as appActions } from '../../redux/modules/app';
+import { push } from 'react-router-redux';
 import { connect } from 'react-redux';
-import { Button, Modal } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import Select from 'react-select';
-import { actions as viewActions } from '../../redux/modules/subjectView';
+import { actions as viewActions } from '../../redux/modules/subjects';
 import classes from './SubjectView.scss';
 
-// We define mapStateToProps where we'd normally use
-// the @connect decorator so the data requirements are clear upfront, but then
-// export the decorated component after the main class definition so
-// the component can be tested w/ and w/o being connected.
-// See: http://rackt.github.io/redux/docs/recipes/WritingTests.html
 const mapStateToProps = (state) => ({
-  viewState: state.adminView
+  viewState: state.subjects
 });
 export class SubjectSelectView extends React.Component {
   static propTypes = {};
 
   constructor() {
     super();
+    this.selectSubject = this.selectSubject.bind(this);
+  }
+
+  componentWillMount() {
+    if (this.props.viewState.get('subjectList').length === 0) {
+      store.dispatch(appActions.setLoadingState(true, 'Getting subjects'));
+    }
+  }
+
+  componentDidMount() {
+    if (this.props.viewState.get('subjectList').length === 0) {
+      this.props.loadSubjects();
+    }
+  }
+
+  selectSubject({value}) {
+    store.dispatch(push('/subjects/' + value));
   }
 
   render() {
-    const options = [
-      { value: 'one', label: 'One' },
-      { value: 'two', label: 'Two' }
-    ];
     return (
       <div className='container text-center'>
         <div>
@@ -34,13 +45,14 @@ export class SubjectSelectView extends React.Component {
         <div className={classes.subjectSelect}>
           <h4>Select a subject profile: </h4>
           <Select
-            options={options}
+            options={this.props.viewState.get('subjectList')}
+            onChange={this.selectSubject}
             />
         </div>
         <div>
           <h4>Create a new one:</h4>
           <LinkContainer to={{pathname: '/subjects/new'}}>
-            <Button bsSize={"large"} bsStyle={"primary"}>Add New Subject</Button>
+            <Button bsSize={'large'} bsStyle={'primary'}>Add New Subject</Button>
           </LinkContainer>
         </div>
       </div>

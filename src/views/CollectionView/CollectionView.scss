@@ -93,3 +93,30 @@
   display: inline-block;
   width: 40%;
 }
+
+.formDiv {
+  text-align: left;
+  display: inline-block;
+  width: 40%;
+}
+
+.newCollectionForm {
+  text-align: center;
+}
+
+.textField {
+  padding-left: 5px!important;
+  border: 1px solid #ccc;
+}
+
+.formButtons {
+  margin-top: 20px;
+}
+
+.saveCollectionButton {
+  margin-right: 10px;
+}
+
+.errorMsg {
+  color: #e51c23;
+}

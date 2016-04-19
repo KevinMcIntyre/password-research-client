@@ -15,6 +15,7 @@
 
 .textField {
   padding-left: 5px!important;
+  border: 1px solid #ccc;
 }
 
 .formButtons {
@@ -27,4 +28,97 @@
 
 .errorMsg {
   color: #e51c23;
+}
+
+.imageSettingContainer {
+  text-align: center;
+}
+
+.imageTestSettings {
+  display: inline-block;
+  padding: 10px 20px 10px 20px;
+  margin-top: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.12);
+  background: #ffffff;
+  width: 50%;
+}
+
+.imageTestSettings table {
+  text-align: justify;
+  display: inline-block;
+}
+
+.imageTestSettings table td{
+  padding-right: 15px;
+}
+
+.imageTestSettings th {
+  font-weight: bold;
+  font-size: 18px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.imageTestSettingsTableContainer {
+  text-align: center;
+}
+
+.optionKey {
+  font-weight: bold;
+}
+
+.buttonTableData {
+  padding-bottom: 5px;
+}
+
+.passwordInput {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  height: auto;
+  border-radius: 0;
+  font-size: 1.25em;
+  outline: none;
+  width: 50%;
+  &:focus {
+    border: 1px solid #c3c3c3;
+  }
+}
+
+.passwordTable {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #333333;
+}
+
+.passwordTable:hover {
+  background: #ffffff !important;
+}
+
+.passwordTable table {
+  text-align: justify;
+  display: inline-block;
+}
+
+.passwordTable table td{
+  padding-right: 15px;
+}
+
+.passwordTable th {
+  font-weight: bold;
+  font-size: 18px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.dropzone {
+  width: 100%;
+}
+
+.dropzoneActive {
+  border-color: black;
+  border-style: dashed;
+  border-radius: 3px;
+  background-color: #dfdfdf;
+  position: absolute;
 }

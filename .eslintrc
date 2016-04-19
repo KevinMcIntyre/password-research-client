@@ -17,6 +17,7 @@
   "rules": {
     "semi" : [2, "always"],
     "space-before-function-paren": [2, "never"],
-    "react/jsx-boolean-value": [2, "always"]
+    "react/jsx-boolean-value": [2, "always"],
+    "react/prop-types": [0]
   }
 }

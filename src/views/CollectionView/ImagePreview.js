@@ -1,6 +1,6 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import PassImage from '../../components/PassImage/PassImage';
-import classes from './SubjectUploadView.scss';
+import classes from './CollectionView.scss';
 import Icon from 'react-fa';
 
 export default class ImagePreview extends React.Component {
@@ -11,16 +11,15 @@ export default class ImagePreview extends React.Component {
   }
 
   saveImage() {
-    this.props.saveImage(1, this.props.img);
-    this.props.discardImage(1, this.props.img);
+    this.props.saveImage(this.props.subjectId, this.props.collectionId, this.props.img);
   }
 
   discardImage() {
-    this.props.discardImage(1, this.props.img);
+    this.props.discardImage(this.props.subjectId, this.props.collectionId, this.props.img);
   }
 
   render() {
-    return(
+    return (
       <span className={classes.imagePreview}>
         <PassImage img={`http://localhost:7000/upload/preview/${this.props.img}`} />
         <div className={classes.previewButtons}>

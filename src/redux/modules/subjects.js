@@ -1,0 +1,252 @@
+import { Map } from 'immutable';
+import { setLoadingState } from './app.js';
+import { push } from 'react-router-redux';
+import _agent from 'superagent';
+import _promise from 'bluebird';
+import _agent_promise from 'superagent-promise';
+
+const agent = _agent_promise(_agent, _promise);
+
+// ------------------------------------
+// Constants
+// ------------------------------------
+const SET_SUBJECTS = 'SET_SUBJECTS';
+const ADD_SUBJECT = 'ADD_SUBJECT';
+const SET_PROFILE = 'SET_PROFILE';
+const SET_NEW_SUBJECT_ERRORS = 'SET_NEW_SUBJECT_ERRORS';
+const SET_PASSWORD = 'SET_PASSWORD';
+const TOGGLE_PASSWORD_MODAL = 'TOGGLE_PASSWORD_MODAL';
+const SET_PIN_NUMBER = 'SET_PIN_NUMBER';
+const TOGGLE_PIN_MODAL = 'TOGGLE_PIN_MODAL';
+const TOGGLE_PASSIMAGE_MODAL = 'TOGGLE_PASSIMAGE_MODAL';
+
+// ------------------------------------
+// Actions
+// ------------------------------------
+export const togglePassImageModal = () => ({type: TOGGLE_PASSIMAGE_MODAL});
+export const togglePinModal = () => ({type: TOGGLE_PIN_MODAL});
+export const setPinNumber = (pinNumber) => ({type: SET_PIN_NUMBER, pinNumber: pinNumber});
+export const savePinNumber = (request) => {
+  return dispatch => {
+    console.log(request);
+    return agent
+      .post('http://localhost:7000/subject/save/pin')
+      .field('subjectId', request.subjectId)
+      .field('pinNumber', request.pinNumber)
+      .set({
+        'Access-Control-Allow-Origin': 'localhost:7000'
+      })
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+        } else {
+          dispatch(setPinNumber(request.pinNumber));
+        }
+      });
+  };
+};
+export const togglePasswordModal = () => ({type: TOGGLE_PASSWORD_MODAL});
+export const setPassword = (password, entropy, strength) => ({type: SET_PASSWORD, password: password, entropy: entropy, strength: strength});
+export const savePassword = (request) => {
+  return dispatch => {
+    console.log(request);
+    return agent
+      .post('http://localhost:7000/subject/save/password')
+      .field('subjectId', request.subjectId)
+      .field('password', request.password)
+      .field('entropy', request.entropy)
+      .field('strength', request.strength)
+      .set({
+        'Access-Control-Allow-Origin': 'localhost:7000'
+      })
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+        } else {
+          dispatch(setPassword(request.password, request.entropy, request.strength));
+        }
+      });
+  };
+};
+export const setProfile = (profile) => ({type: SET_PROFILE, profile: profile});
+export const setSubjects = (subjects) => ({type: SET_SUBJECTS, subjects: subjects});
+export const addSubject = (subject) => ({type: ADD_SUBJECT, subject: subject});
+export const setErrorFields = (issues) => ({type: SET_NEW_SUBJECT_ERRORS, newSubjectErrors: issues});
+export const loadSubjects = () => {
+  return dispatch => {
+    return agent
+      .get('http://localhost:7000/subject/list')
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+        } else {
+          const response = JSON.parse(res.text);
+          dispatch(setSubjects(response));
+          setTimeout(function() {
+            dispatch(setLoadingState(false));
+          }, 1000);
+        }
+      });
+  };
+};
+export const loadProfile = (userId) => {
+  return dispatch => {
+    return agent
+      .get('http://localhost:7000/subject/profile/' + userId)
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+        } else {
+          const response = JSON.parse(res.text);
+          dispatch(setProfile({
+            firstName: response.FirstName,
+            lastName: response.LastName,
+            email: response.Email,
+            birthday: response.Birthday,
+            password: response.Password.Valid ? response.Password.String : undefined,
+            passwordStrength: response.PasswordStrength.Valid ? response.PasswordStrength.String : undefined,
+            passwordEntropy: response.PasswordEntropy.Valid ? response.PasswordEntropy.String : undefined,
+            pinNumber: response.PinNumber.Valid ? response.PinNumber.String : undefined
+          }));
+          setTimeout(function() {
+            dispatch(setLoadingState(false));
+          }, 1000);
+        }
+      });
+  };
+};
+export const saveProfile = (profile) => {
+  return dispatch => {
+    return agent
+      .post('http://localhost:7000/subject/new')
+      .send(JSON.stringify({
+        'firstName': profile.firstName,
+        'lastName': profile.lastName,
+        'email': profile.email,
+        'birthday': profile.birthday
+      }))
+      .set({
+        'Access-Control-Allow-Origin': 'localhost:7000'
+      })
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+        } else {
+          const response = JSON.parse(res.text);
+          dispatch(addSubject({
+            value: response.id,
+            label: profile.lastName + ', ' + profile.firstName
+          }));
+          dispatch(push('/subjects/' + response.id));
+        }
+      });
+  };
+};
+
+export const actions = {
+  loadSubjects,
+  setSubjects,
+  addSubject,
+  loadProfile,
+  setProfile,
+  setErrorFields,
+  saveProfile,
+  savePassword,
+  togglePasswordModal,
+  savePinNumber,
+  togglePinModal,
+  togglePassImageModal
+};
+
+// ------------------------------------
+// State
+// ------------------------------------
+const subjectListViewState = Map({
+  subjectList: [],
+  subjectMap: Map({}),
+  firstName: undefined,
+  lastName: undefined,
+  email: undefined,
+  birthday: undefined,
+  password: undefined,
+  passwordEntropy: undefined,
+  passwordStrength: undefined,
+  pinNumber: undefined,
+  newSubjectErrors: [],
+  showPasswordModal: false,
+  showPinModal: false,
+  showPassImageModal: false
+});
+// ------------------------------------
+// Reducer
+// ------------------------------------
+export default function subjectListViewReducer(state = subjectListViewState, action = null) {
+  switch (action.type) {
+    case TOGGLE_PASSIMAGE_MODAL: {
+      const modalState = state.get('showPassImageModal');
+      return state.set('showPassImageModal', !modalState);
+    }
+    case TOGGLE_PIN_MODAL: {
+      const modalState = state.get('showPinModal');
+      return state.set('showPinModal', !modalState);
+    }
+    case SET_PIN_NUMBER: {
+      return state.set('pinNumber', action.pinNumber);
+    }
+    case TOGGLE_PASSWORD_MODAL: {
+      const modalState = state.get('showPasswordModal');
+      return state.set('showPasswordModal', !modalState);
+    }
+    case SET_PASSWORD: {
+      return state
+        .set('password', action.password)
+        .set('passwordEntropy', action.entropy)
+        .set('passwordStrength', action.strength);
+    }
+    case SET_SUBJECTS: {
+      let subjectList = [];
+      if (action.subjects) {
+        let subjectMap = state.get('subjectMap');
+        action.subjects.map((subject) => {
+          subjectList.push({value: subject.Id, label: subject.Name});
+          let splitName = subject.Name.split(', ');
+          subjectMap = subjectMap.set(subject.Id, splitName[1] + ' ' + splitName[0]);
+        });
+        state = state.set('subjectMap', subjectMap);
+      }
+      return state.set('subjectList', subjectList);
+    }
+    case ADD_SUBJECT: {
+      let newSubjectList = state.get('subjectList');
+      newSubjectList.push(action.subject);
+      newSubjectList.sort((a, b) => {
+        if (a.label.toLowerCase() < b.label.toLowerCase()) {
+          return -1;
+        }
+        if (a.label.toLowerCase() > b.label.toLowerCase()) {
+          return 1;
+        }
+        return 0;
+      });
+      state.set('subjectMap', state.get('subjectMap').set(action.subject.value, action.subject.label));
+      return state.set('subjectList', newSubjectList);
+    }
+    case SET_PROFILE: {
+      return state
+        .set('firstName', action.profile.firstName)
+        .set('lastName', action.profile.lastName)
+        .set('email', action.profile.email)
+        .set('birthday', action.profile.birthday)
+        .set('password', action.profile.password)
+        .set('passwordStrength', action.profile.passwordStrength)
+        .set('passwordEntropy', action.profile.passwordEntropy)
+        .set('pinNumber', action.profile.pinNumber);
+    }
+    case SET_NEW_SUBJECT_ERRORS: {
+      return state.set('newSubjectErrors', action.newSubjectErrors);
+    }
+    default: {
+      return state;
+    }
+  }
+}

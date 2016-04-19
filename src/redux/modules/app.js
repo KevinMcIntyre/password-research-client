@@ -1,51 +1,36 @@
-import { List, Map } from 'immutable';
+import { Map } from 'immutable';
 
 // ------------------------------------
 // Constants
 // ------------------------------------
-
+const TOGGLE_LOADING_STATE = 'TOGGLE_LOADING_STATE';
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const setLoadingState = (loading, text) => ({type: TOGGLE_LOADING_STATE, loading: loading, text: text});
+
+export const actions = {
+  setLoadingState
+};
 
 // ------------------------------------
 // State
 // ------------------------------------
 const appState = Map({
-  'settings': Map({
-    'matrixRows': 4,
-    'matrixCols': 4,
-    'authStages': 6
-  }),
-  'session': Map({
-    'id': 1,
-    'adminId': 1,
-    'userId': 1
-  }),
-  'admin': Map({
-    'id': 1,
-    'firstName': 'Kevin',
-    'lastName': 'McIntyre'
-  }),
-  'subject': Map({
-    'id': 1,
-    'firstName': 'Johnny',
-    'lastName': 'Test'
-  }),
-  'trial': Map({
-    'id': 1,
-    'subjectId': 1,
-    'stage': 1,
-    'trialType': 'image',
-    'imageMatrices': Map({}),
-    'selectedImages': List()
-  })
+  loading: false,
+  loadingText: 'Processing'
 });
 // ------------------------------------
 // Reducer
 // ------------------------------------
 export default function appReducer(state = appState, action = null) {
   switch (action.type) {
+    case TOGGLE_LOADING_STATE: {
+      if (action.text !== undefined) {
+        state = state.set('loadingText', action.text);
+      }
+      return state.set('loading', action.loading);
+    }
     default: {
       return state;
     }

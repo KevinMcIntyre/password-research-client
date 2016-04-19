@@ -8,25 +8,30 @@ import { Route, IndexRoute, Redirect } from 'react-router';
 // your current file is.
 import CoreLayout from 'layouts/CoreLayout/CoreLayout';
 import HomeView from 'views/HomeView/HomeView';
-import TestView from 'views/TestView/TestView';
-import AdminView from 'views/AdminView/AdminView';
+import TestSetupView from 'views/TestView/TestSetupView';
 import SubjectView from 'views/SubjectView/SubjectView';
 import SubjectSelectView from 'views/SubjectView/SubjectSelectView';
 import NewSubjectView from 'views/SubjectView/NewSubjectView';
 import SubjectProfileView from 'views/SubjectView/SubjectProfileView';
-import SubjectUploadView from 'views/SubjectUploadView/SubjectUploadView';
+import CollectionView from 'views/CollectionView/CollectionView';
+import CollectionSelectView from 'views/CollectionView/CollectionSelectView';
+import NewCollectionView from 'views/CollectionView/NewCollectionView';
+import CollectionUploadView from 'views/CollectionView/CollectionUploadView';
 import NotFoundView from 'views/NotFoundView/NotFoundView';
 
 export default (
   <Route path='/' component={CoreLayout}>
     <IndexRoute component={HomeView} />
-    <Route path='test' component={TestView} />
-    <Route path='collections' component={SubjectUploadView} />
-    <Route path='admin' component={AdminView} />
+    <Route path='test' component={TestSetupView} />
+    <Route path='collections' component={CollectionView}>
+      <IndexRoute component={CollectionSelectView}/>
+      <Route path='new' component={NewCollectionView} />
+      <Route path=':collectionId' component={CollectionUploadView} />
+    </Route>
     <Route path='subjects' component={SubjectView}>
       <IndexRoute component={SubjectSelectView}/>
       <Route path='new' component={NewSubjectView} />
-      <Route path=':id' component={SubjectProfileView} />
+      <Route path=':subjectId' component={SubjectProfileView} />
     </Route>
     <Route path='/404' component={NotFoundView} />
     <Redirect from='*' to='/404' />
