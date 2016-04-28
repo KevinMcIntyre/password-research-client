@@ -5,7 +5,7 @@ import (
 )
 
 type UserPassImageRequest struct {
-  SubjectId int
+  SubjectId    int
   CollectionId int
 }
 

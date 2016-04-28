@@ -10,7 +10,7 @@ type CollectionLabelAndId struct {
 }
 
 func GetCollectionList(db *sql.DB) ([]CollectionLabelAndId) {
-  rows, err := db.Query("SELECT id, label FROM collections ORDER BY UPPER(label) ASC")
+  rows, err := db.Query("SELECT id, label FROM collections WHERE id != 0 ORDER BY UPPER(label) ASC")
   if (err != nil) {
     fmt.Println(err);
     // handle error

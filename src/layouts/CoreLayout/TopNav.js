@@ -9,22 +9,23 @@ export default class TopNav extends React.Component {
 
   render() {
     let navItems = (
-        <Navbar.Collapse>
+      <Navbar.Collapse>
         <Nav pullRight={true}>
           <LinkContainer to={{pathname: '/test'}}>
-            <NavItem eventKey={1}>Test Setup</NavItem>
+            <NavItem eventKey={1}>Run a Test</NavItem>
           </LinkContainer>
           <NavDropdown eventKey={2} title='Administration' id='basic-nav-dropdown'>
             <LinkContainer to={{pathname: '/subjects'}}>
               <MenuItem eventKey={2.1}>Subjects</MenuItem>
             </LinkContainer>
             <LinkContainer to={{pathname: '/collections'}}>
-              <MenuItem eventKey={2.2}>Image Collections</MenuItem>
+              <MenuItem eventKey={2.2}>Pass-Images</MenuItem>
             </LinkContainer>
-            <MenuItem eventKey={2.3}>Administrators</MenuItem>
-            <MenuItem eventKey={2.4}>Preferences</MenuItem>
+            <LinkContainer to={{pathname: '/tests'}}>
+              <MenuItem eventKey={2.3}>Pass-Image Tests</MenuItem>
+            </LinkContainer>
           </NavDropdown>
-        </Nav>
+        </Nav >
       </Navbar.Collapse>
     );
     return (
@@ -37,7 +38,7 @@ export default class TopNav extends React.Component {
           </Navbar.Brand>
           <Navbar.Toggle />
         </Navbar.Header>
-        {this.props.testing ? null : navItems}
+        {navItems}
       </Navbar>
     );
   }

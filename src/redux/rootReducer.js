@@ -5,7 +5,7 @@ import app from './modules/app';
 import subjects from './modules/subjects';
 import tests from './modules/tests';
 import images from './modules/images';
-import adminView from './modules/adminView';
+import config from './modules/config';
 
 export default combineReducers({
   counter,
@@ -14,5 +14,5 @@ export default combineReducers({
   subjects,
   tests,
   images,
-  adminView
+  config
 });

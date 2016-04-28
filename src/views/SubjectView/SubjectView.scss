@@ -122,3 +122,55 @@
   background-color: #dfdfdf;
   position: absolute;
 }
+
+.matrixSelect select {
+  width: 40px;
+}
+
+.matrixSelect div {
+  display: inline-block;
+}
+
+.matrixSelect div:nth-of-type(2) {
+  padding-left: 15px;
+}
+
+.matrixTimes {
+  margin-left: 15px;
+  font-weight: 700;
+}
+
+.stageSelect {
+  margin-top: 15px;
+}
+
+.stageSelect select {
+  width: 40px;
+}
+
+.radioContainer {
+  text-align: left;
+  display: inline-block;
+}
+
+div.radioContainer > div:nth-child(2) {
+  margin-bottom: 0 !important;
+}
+
+div.radioContainer > label {
+  margin-bottom: 0 !important;
+}
+
+
+.radioButton {
+  display: inline-block;
+}
+
+.buttonGroup {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.backButton{
+  margin-right: 10px;
+}

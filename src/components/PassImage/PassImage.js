@@ -5,6 +5,11 @@ export default class PassImage extends React.Component {
   constructor() {
     super();
   }
+
+  shouldComponentUpdate(nextProps) {
+    return this.props.img !== nextProps.img;
+  }
+
   render() {
     let passImageBody;
     if (this.props.isTesting) {

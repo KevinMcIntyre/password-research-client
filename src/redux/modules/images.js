@@ -79,7 +79,7 @@ export const loadCollections = (collectionId) => {
           dispatch(setCollections(response));
           if (collectionId) {
             response.map(collection => {
-              if (collection.Id === collectionId) {
+              if (collection.Id === parseInt(collectionId, 10)) {
                 dispatch(setCollection({
                   id: collection.Id,
                   label: collection.Label
