@@ -13,6 +13,7 @@ import (
   "strings"
 "math/rand"
   "time"
+  "sync"
 )
 
 type ImgurImage struct {
@@ -31,18 +32,17 @@ type ImgurResponse struct {
   Status  int          `json:"status"`
 }
 
-func (imgur ImgurImage) Save(db *sql.DB, testConfigId int, stage int, row int, column int) string {
-  var alias string
+func (imgur ImgurImage) Save(waitgroup *sync.WaitGroup, transaction *sql.Tx, testConfigId int, stage int, row int, column int) {
+  defer waitgroup.Done();
   filePath := imgurImageToFile(imgur)
   utils.ResizeImage(*filePath)
   imageBytes := utils.ImageFileToByteArray(*filePath)
-  err := db.QueryRow("INSERT INTO random_stage_images (image, image_type, test_config_id, stage_number, row_number, column_number, alias) VALUES($1, $2, $3, $4, $5, $6, replace(md5(random()::text || clock_timestamp()::text), '-'::text, ''::text)::varchar(60)) returning alias;",
-    imageBytes, imgur.Type, testConfigId, stage, row, column).Scan(&alias)
+  _, err := transaction.Exec("INSERT INTO random_stage_images (image, image_type, test_config_id, stage_number, row_number, column_number, alias) VALUES($1, $2, $3, $4, $5, $6, replace(md5(random()::text || clock_timestamp()::text), '-'::text, ''::text)::varchar(60));",
+    imageBytes, imgur.Type, testConfigId, stage, row, column)
   if err != nil {
     log.Println("Error saving random image", err)
   }
   os.Remove(*filePath)
-  return alias
 }
 
 func imgurImageToFile(imgur ImgurImage) *string {
@@ -92,7 +92,6 @@ func getGallery(galleryNumber int) string {
     "plants",
     "wallpaper",
     "wallpapers",
-    "WQHD_Wallpaper",
     "aww",
     "art",
     "photos",
@@ -180,11 +179,11 @@ func GetRandomImgurImages(imagesRequested int) *[]ImgurImage {
   j := 0;
 
   for (len(images) < imagesRequested) {
-    for (j < 5) {
+    for (j < 10) {
       pageNumber := (rand.Intn(2) + 1)
-      galleryNumber := (rand.Intn(28) + 1)
+      galleryNumber := (rand.Intn(27) + 1)
       for (utils.IntInSlice(galleryNumber, chosenGalleries)) {
-        galleryNumber = (rand.Intn(28) + 1);
+        galleryNumber = (rand.Intn(27) + 1);
       }
       chosenGalleries = append(chosenGalleries, galleryNumber)
 

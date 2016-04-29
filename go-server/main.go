@@ -17,6 +17,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+"log"
+"sync"
 )
 
 var db *sql.DB = setupDatabase()
@@ -399,33 +401,38 @@ func imgurHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 	stages, _ := strconv.Atoi(r.FormValue("stages"))
 	rows, _ := strconv.Atoi(r.FormValue("rows"))
 	columns, _ := strconv.Atoi(r.FormValue("columns"))
-	i := 1
-	var stageMap = make(map[string]map[string]map[string]string)
 	randomImages := *services.GetRandomImgurImages(rows * columns * stages)
 
+  transaction, err := db.Begin();
+  if (err != nil) {
+    log.Println("Error starting db transaction", err)
+  }
+
+  var wg sync.WaitGroup
+  wg.Add(rows * columns * stages)
+  i := 1
 	for i <= stages {
-		stageString := strconv.Itoa(i)
-		stageMap[stageString] = make(map[string]map[string]string)
 		row := 1
 		column := 1
-		stageMap[stageString][strconv.Itoa(row)] = make(map[string]string)
 		for _, image := range randomImages[((i - 1) * (rows * columns)):(i * rows * columns)] {
-			alias := image.Save(db, configId, i, row, column)
-			stageMap[stageString][strconv.Itoa(row)][strconv.Itoa(column)] = alias
+			go image.Save(&wg, transaction, configId, i, row, column)
 			if column == columns {
 				column = 1
 				row++
-				if row <= rows {
-					stageMap[stageString][strconv.Itoa(row)] = make(map[string]string)
-				}
 			} else {
 				column++
 			}
 		}
 		i++
 	}
+  wg.Wait();
+  err = transaction.Commit();
+  if (err != nil) {
+    log.Println("Error committing db transaction", err)
+  }
 
-	jsonResponse, err := json.Marshal(stageMap)
+  matrixMap := models.GetMatrixMap(db, 0)
+	jsonResponse, err := json.Marshal(*matrixMap)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
