@@ -171,6 +171,34 @@ div.radioContainer > label {
   margin-bottom: 20px;
 }
 
-.backButton{
+.backButton {
   margin-right: 10px;
+}
+
+.beforeAfterDiv {
+  display: inline-block;
+}
+
+.beforeAfterIcon {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.radioContainer {
+  text-align: left;
+  display: inline-block;
+}
+
+.radioButton {
+  display: inline-block;
+}
+
+.loadingDiv {
+  margin-top: 10%;
+  margin-bottom: 10%;
+}
+
+.collectionSelect {
+  display: inline-block;
+  width: 40%;
 }

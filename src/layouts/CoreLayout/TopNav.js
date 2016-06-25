@@ -19,10 +19,10 @@ export default class TopNav extends React.Component {
               <MenuItem eventKey={2.1}>Subjects</MenuItem>
             </LinkContainer>
             <LinkContainer to={{pathname: '/collections'}}>
-              <MenuItem eventKey={2.2}>Pass-Images</MenuItem>
+              <MenuItem eventKey={2.2}>Image Collections</MenuItem>
             </LinkContainer>
-            <LinkContainer to={{pathname: '/tests'}}>
-              <MenuItem eventKey={2.3}>Pass-Image Tests</MenuItem>
+            <LinkContainer to={{pathname: '/configurations'}}>
+              <MenuItem eventKey={2.3}>Test Configurations</MenuItem>
             </LinkContainer>
           </NavDropdown>
         </Nav >

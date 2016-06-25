@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
 import PassImage from '../PassImage/PassImage.js';
-import TestImage from './01.jpg';
 import classes from './ImageMatrix.scss';
 
 export default class ImageMatrix extends React.Component {
@@ -10,7 +9,11 @@ export default class ImageMatrix extends React.Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    return (this.props.matrix != nextProps.matrix || this.props.matrix.get("1").get("1") !== nextProps.matrix.get("1").get("1"));
+    if (this.props.matrix) {
+      return (this.props.matrix != nextProps.matrix || this.props.matrix.get("1").get("1") !== nextProps.matrix.get("1").get("1"));
+    } else {
+      return true;
+    }
   }
 
   render() {
@@ -19,9 +22,18 @@ export default class ImageMatrix extends React.Component {
       for (var i = 1; i <= this.props.rows; i++) {
         let imageRow = [];
         for (let j = 1; j <= this.props.columns; j++) {
-          let imgKey = i.toString() + j.toString();
           let img = this.props.matrix.get(i.toString()).get(j.toString());
-          imageRow.push(<PassImage key={imgKey} ident={imgKey} img={"http://localhost:7000/random/image/" + img} isTesting={true}/>);
+          if (img === 'user-img') {
+            imageRow.push(<PassImage key={i.toString() + j.toString()}
+                                     img={`http://localhost:7000/assets/img/participant-image.jpeg`} alias={'user-img'}
+                                     isTesting={true} onImageClick={this.props.onImageClick}/>);
+          } else if (this.props.random) {
+            imageRow.push(<PassImage key={img} img={`http://localhost:7000/random/image/${img}`} alias={img}
+                                     isTesting={true} onImageClick={this.props.onImageClick}/>);
+          } else {
+            imageRow.push(<PassImage key={img} img={`http://localhost:7000/test/image/${img}`} alias={img}
+                                     isTesting={true} onImageClick={this.props.onImageClick}/>);
+          }
         }
         matrix.push(
           <div key={i}>
@@ -35,7 +47,8 @@ export default class ImageMatrix extends React.Component {
     if (this.props.noneEnabled) {
       matrix.push(
         <div key={(i + 1)}>
-          <Button bsSize={"large"} bsStyle={"primary"} className={classes.imageNone}>None of my pass-images are displayed here</Button>
+          <Button bsSize={"large"} bsStyle={"primary"} className={classes.imageNone}>None of my pass-images are
+            displayed here</Button>
         </div>
       );
     }

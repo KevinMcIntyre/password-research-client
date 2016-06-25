@@ -14,6 +14,7 @@ import (
 "math/rand"
   "time"
   "sync"
+  "fmt"
 )
 
 type ImgurImage struct {
@@ -37,12 +38,25 @@ func (imgur ImgurImage) Save(waitgroup *sync.WaitGroup, transaction *sql.Tx, tes
   filePath := imgurImageToFile(imgur)
   utils.ResizeImage(*filePath)
   imageBytes := utils.ImageFileToByteArray(*filePath)
-  _, err := transaction.Exec("INSERT INTO random_stage_images (image, image_type, test_config_id, stage_number, row_number, column_number, alias) VALUES($1, $2, $3, $4, $5, $6, replace(md5(random()::text || clock_timestamp()::text), '-'::text, ''::text)::varchar(60));",
-    imageBytes, imgur.Type, testConfigId, stage, row, column)
+  _, err := transaction.Exec("INSERT INTO random_stage_images (image, image_type, test_config_id, stage_number, row_number, column_number, alias, creation_date) VALUES($1, $2, $3, $4, $5, $6, replace(md5(random()::text || clock_timestamp()::text), '-'::text, ''::text)::varchar(60), $7);",
+    imageBytes, imgur.Type, testConfigId, stage, row, column, time.Now())
   if err != nil {
     log.Println("Error saving random image", err)
   }
   os.Remove(*filePath)
+}
+
+func (imgur ImgurImage) Replace(db *sql.DB, testConfigId int, replacingAlias string) string {
+  fmt.Println("ConfigId", testConfigId)
+  fmt.Println("Replacing alias", replacingAlias)
+  filePath := imgurImageToFile(imgur)
+  utils.ResizeImage(*filePath)
+  imageBytes := utils.ImageFileToByteArray(*filePath)
+  var alias string
+  db.QueryRow("INSERT INTO random_stage_images (image, image_type, test_config_id, replacement_alias, alias, creation_date, stage_number, column_number, row_number) VALUES($1, $2, $3, $4, replace(md5(random()::text || clock_timestamp()::text), '-'::text, ''::text)::varchar(60), $5, -1, -1, -1) returning alias;",
+    imageBytes, imgur.Type, testConfigId, replacingAlias, time.Now()).Scan(&alias);
+  os.Remove(*filePath)
+  return alias
 }
 
 func imgurImageToFile(imgur ImgurImage) *string {
@@ -192,13 +206,33 @@ func GetRandomImgurImages(imagesRequested int) *[]ImgurImage {
     }
   }
 
-  shuffledImages := make([]ImgurImage, len(images))
-  perm := rand.Perm(len(images))
-  for p, v := range perm {
-    shuffledImages[v] = images[p]
+  // shuffle images
+  for p, _ := range images {
+    v := rand.Intn(p + 1)
+    images[p], images[v] = images[v], images[p]
   }
 
-  shuffledImages = shuffledImages[:imagesRequested]
+  // return only the amount of images needed
+  images = images[:imagesRequested]
 
-  return &shuffledImages
+  return &images
+}
+
+func GetRandomImgurImage() *ImgurImage {
+  rand.Seed(int64(time.Now().Nanosecond()))
+  var images []ImgurImage
+
+  for (len(images) < 1) {
+    pageNumber := (rand.Intn(2) + 1)
+    galleryNumber := (rand.Intn(27) + 1)
+    images = append(images, *GetRandomImgurImagesFromGallery(galleryNumber, pageNumber)...)
+  }
+
+  // shuffle images
+  for p, _ := range images {
+    v := rand.Intn(p + 1)
+    images[p], images[v] = images[v], images[p]
+  }
+
+  return &images[0];
 }

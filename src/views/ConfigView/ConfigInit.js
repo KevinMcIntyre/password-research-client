@@ -1,5 +1,7 @@
 import React from 'react';
 import { Button, Input } from 'react-bootstrap';
+import { loadCollections } from '../../redux/modules/images.js';
+import { store } from '../../main.js';
 import classes from '../SubjectView/SubjectView.scss';
 
 export default class ConfigInit extends React.Component {
@@ -7,6 +9,10 @@ export default class ConfigInit extends React.Component {
     super();
     this.setConfig = this.setConfig.bind(this);
     this.updateTestName = this.updateTestName.bind(this);
+  }
+
+  componentDidMount() {
+    store.dispatch(loadCollections());
   }
 
   setConfig() {
@@ -84,11 +90,11 @@ export default class ConfigInit extends React.Component {
                 </label>
                 <Input ref='notPresentTrue' className={classes.radioButton} name='test' type='radio' standAlone={true}
                        label='True' value='true' checked={this.props.viewState.get('mayNotHaveSubjectImage')}
-                       onChange={this.props.setSubjectImagePresent}
+                       onChange={this.props.toggleMayNotHaveImage.bind(null, true)}
                   />
                 <Input ref='notPresentFalse' className={classes.radioButton} name='test' type='radio' standAlone={true}
                        label='False' value='false' checked={!this.props.viewState.get('mayNotHaveSubjectImage')}
-                       onChange={this.props.setSubjectImagePresent}
+                       onChange={this.props.toggleMayNotHaveImage.bind(null, false)}
                   />
               </div>
               <div className={classes.formButtons}>

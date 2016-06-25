@@ -3,6 +3,7 @@ import { setLoadingState } from './app';
 import _agent from 'superagent';
 import _promise from 'bluebird';
 import _agent_promise from 'superagent-promise';
+import { push } from 'react-router-redux';
 
 const agent = _agent_promise(_agent, _promise);
 
@@ -16,6 +17,18 @@ const SET_CONFIG = 'SET_CONFIG';
 const CLEAR_FORM = 'CLEAR_FORM';
 const UPDATE_TEST_NAME = 'UPDATE_TEST_NAME';
 const SET_CONFIG_STAGES = 'SET_CONFIG_STAGES';
+const TOGGLE_CHANGE_IMAGE_MODAL = 'TOGGLE_CHANGE_IMAGE_MODAL';
+const SET_REPLACEMENT_TYPE = 'SET_REPLACEMENT_TYPE';
+const SET_RANDOM_IMAGE = 'SET_RANDOM IMAGE';
+const SET_REPLACEMENT_IMAGE = 'SET_REPLACEMENT_IMAGE';
+const UPDATE_IMAGE_MATRIX = 'UPDATE_IMAGE_MATRIX';
+const GET_CONFIG_ID = 'GET_CONFIG_ID';
+const SET_CONFIG_ID = 'SET_CONFIG_ID';
+const SAVE_CONFIG = 'SAVE_CONFIG';
+const SET_CONFIGS = 'SET_CONFIGS';
+const SELECT_CONFIG = 'SELECT_CONFIG';
+const INCREMENT_STAGE = 'INCREMENT_STAGE';
+const DECREMENT_STAGE = 'DECREMENT_STAGE';
 
 // ------------------------------------
 // Wizard Stage Constants
@@ -33,9 +46,162 @@ export const wizardStages = {
 // ------------------------------------
 // Actions
 // ------------------------------------
+const incrementStage = () => ({type: INCREMENT_STAGE});
+const decrementStage = () => ({type: DECREMENT_STAGE});
+export const loadConfigImages = (configId) => {
+  return dispatch => {
+    let req = agent.post('http://localhost:7000/config')
+      .field('configId', configId);
+    return req.set({
+      'Access-Control-Allow-Origin': 'localhost:7000'
+    }).end()
+      .then(function (res) {
+        const json = JSON.parse(res.text);
+        dispatch(setConfigId(configId));
+        dispatch(setConfig(json.Name, json.Rows, json.Columns, json.Stages));
+        dispatch(toggleMayNotHaveImage(json.ImageMaybeNotPresent));
+        dispatch(setConfigStages(Immutable.fromJS(json.Matrix)));
+        setTimeout(function() {
+          dispatch(setLoadingState(false));
+        }, 1000);
+      }, function (err) {
+        console.log(err);
+      });
+  };
+};
+export const selectConfig = (config) => ({type: SELECT_CONFIG, config: config});
+export const setConfigs = (configs) => ({type: SET_CONFIGS, configs: configs});
+export const loadConfigs = (configId, imageMaybeNotPresent) => {
+  return dispatch => {
+    return agent
+      .get('http://localhost:7000/config/list')
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+        } else {
+          const response = JSON.parse(res.text);
+          dispatch(setConfigs(response));
+          if (configId) {
+            response.map(config => {
+              if (config.Id === parseInt(configId, 10)) {
+                dispatch(selectConfig({
+                  id: config.Id,
+                  label: config.Label
+                }));
+                dispatch(loadConfigImages(config.Id, imageMaybeNotPresent));
+              }
+            });
+          } else {
+            setTimeout(function() {
+              dispatch(setLoadingState(false));
+            }, 1000);
+          }
+        }
+      });
+  };
+};
+export const saveConfig = (configId, name, stages, rows, columns, imageMaybeNotPresent, matrix) => {
+  return dispatch => {
+    const request = {
+      configId: parseInt(configId),
+      name: name,
+      stages: parseInt(stages),
+      rows: parseInt(rows),
+      columns: parseInt(columns),
+      imageMaybeNotPresent: imageMaybeNotPresent,
+      matrix: trimMatrix(stages, rows, columns, matrix)
+    };
+    return agent
+      .post('http://localhost:7000/config/save')
+      .send(JSON.stringify(request))
+      .set({
+        'Access-Control-Allow-Origin': 'localhost:7000'
+      })
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+        } else {
+          dispatch(push('/configurations/' + configId));
+        }
+      });
+  }
+};
+
+const trimMatrix = (stages, rows, columns, matrix) => {
+  let matrixObj = {};
+  for (let i = 1; i <= parseInt(stages); i++) {
+    let stageObj = {};
+    for (let j = 1; j <= parseInt(rows); j++) {
+      let rowObj = {};
+      for (let k = 1; k <= parseInt(columns); k++) {
+        rowObj[k.toString()] = matrix.get(i.toString()).get(j.toString()).get(k.toString());
+      }
+      stageObj[j.toString()] = rowObj;
+    }
+    matrixObj[i.toString()] = stageObj;
+  }
+  return matrixObj;
+};
+
+const setConfigId = (configId) => ({type: SET_CONFIG_ID, configId: configId});
+const updateImageMatrix = (stage, row, column, alias) => ({
+  type: UPDATE_IMAGE_MATRIX,
+  stage: stage.toString(),
+  row: row.toString(),
+  column: column.toString(),
+  alias: alias
+});
+export const confirmImageReplacement = (configId, selectedAlias, replacementAlias, replacementType, collectionId) => {
+  return dispatch => {
+    let req = agent.post('http://localhost:7000/image/replace')
+      .field('configId', configId)
+      .field('selectedAlias', selectedAlias)
+      .field('replacementAlias', replacementAlias)
+      .field('replacementType', replacementType)
+      .field('collectionId', collectionId);
+    return req.set({
+      'Access-Control-Allow-Origin': 'localhost:7000'
+    }).end()
+      .then(function (res) {
+        let json = JSON.parse(res.text);
+        dispatch(updateImageMatrix(json.Stage, json.Row, json.Column, json.Alias));
+        dispatch(toggleChangeImageModal(undefined));
+      }, function (err) {
+        console.log(err);
+      });
+  }
+};
+export const setReplacementAlias = (replacementAlias) => ({type: SET_REPLACEMENT_IMAGE, alias: replacementAlias});
+export const setRandomImageAlias = (randomAlias) => ({type: SET_RANDOM_IMAGE, alias: randomAlias});
+export const getRandomImage = (configId, replacingAlias) => {
+  return dispatch => {
+    dispatch(setRandomImageAlias(undefined));
+    let req = agent.post('http://localhost:7000/random/image')
+      .field('configId', configId)
+      .field('alias', replacingAlias);
+    return req.set({
+      'Access-Control-Allow-Origin': 'localhost:7000'
+    }).end()
+      .then(function (res) {
+        dispatch(setRandomImageAlias(res.text.substring(1, (res.text.length - 1))));
+      }, function (err) {
+        console.log(err);
+      });
+  };
+};
+export const setReplacementType = (replacementType) => ({type: SET_REPLACEMENT_TYPE, replacementType: replacementType});
+export const changeReplacementType = (replacementType, configId, replacingAlias) => {
+  return dispatch => {
+    if (replacementType === 'random-img') {
+      dispatch(getRandomImage(configId, replacingAlias))
+    }
+    dispatch(setReplacementType(replacementType));
+  }
+};
+export const toggleChangeImageModal = (imageAlias) => ({type: TOGGLE_CHANGE_IMAGE_MODAL, imageAlias: imageAlias});
 export const incrementWizard = () => ({type: INCREMENT_WIZARD});
 export const decrementWizard = () => ({type: DECREMENT_WIZARD});
-export const toggleMayNotHaveImage = () => ({type: TOGGLE_MAY_NOT_HAVE_IMAGE});
+export const toggleMayNotHaveImage = (mayNotHaveImage) => ({type: TOGGLE_MAY_NOT_HAVE_IMAGE, mayNotHaveImage: mayNotHaveImage});
 export const clearForm = () => ({type: CLEAR_FORM});
 export const setConfig = (name, rows, columns, stages) => ({
   type: SET_CONFIG,
@@ -46,10 +212,9 @@ export const setConfig = (name, rows, columns, stages) => ({
 });
 export const updateTestName = (name) => ({type: UPDATE_TEST_NAME, name: name});
 export const setConfigStages = (stageMap) => ({type: SET_CONFIG_STAGES, stages: stageMap});
-export const generateConfigStages = (configId, stages, rows, columns) => {
+export const generateConfigStages = (stages, rows, columns) => {
   return dispatch => {
     let req = agent.post('http://localhost:7000/random/stages')
-      .field('configId', configId)
       .field('stages', stages)
       .field('rows', rows)
       .field('columns', columns);
@@ -58,7 +223,8 @@ export const generateConfigStages = (configId, stages, rows, columns) => {
     }).end()
       .then(function (res) {
         const json = JSON.parse(res.text);
-        dispatch(setConfigStages(Immutable.fromJS(json)));
+        dispatch(setConfigStages(Immutable.fromJS(json.Matrix)));
+        dispatch(setConfigId(json.Id));
         dispatch(setLoadingState(false));
       }, function (err) {
         console.log(err);
@@ -73,15 +239,27 @@ export const actions = {
   setConfigStages,
   generateConfigStages,
   clearForm,
-  updateTestName
+  updateTestName,
+  toggleChangeImageModal,
+  changeReplacementType,
+  getRandomImage,
+  setReplacementAlias,
+  confirmImageReplacement,
+  saveConfig,
+  loadConfigs,
+  selectConfig,
+  loadConfigImages,
+  incrementStage,
+  decrementStage
 };
 
 // ------------------------------------
 // State
 // ------------------------------------
 const configViewState = Immutable.Map({
+  configs: [],
   wizardStage: CONFIG_INIT,
-  id: 0,
+  configId: undefined,
   name: undefined,
   rows: '4',
   columns: '4',
@@ -89,16 +267,81 @@ const configViewState = Immutable.Map({
   currentStageBeingSet: 1,
   createdStages: undefined,
   mayNotHaveSubjectImage: true,
-  configErrors: []
+  configErrors: [],
+  showChangeImageModal: false,
+  selectedAlias: undefined,
+  replacementType: undefined,
+  replacementAlias: undefined,
+  randomAlias: undefined
 });
 // ------------------------------------
 // Reducer
 // ------------------------------------
 export default function configViewReducer(state = configViewState, action = null) {
   switch (action.type) {
+    case INCREMENT_STAGE: {
+      const currentStage = state.get('currentStageBeingSet');
+      const numberOfStages = state.get('stages');
+      if (currentStage < numberOfStages) {
+        return state.set('currentStageBeingSet', currentStage + 1);
+      }
+      return
+    }
+    case DECREMENT_STAGE: {
+      const currentStage = state.get('currentStageBeingSet');
+      if (currentStage > 1) {
+        return state.set('currentStageBeingSet', currentStage - 1);
+      }
+      return
+    }
+    case SET_CONFIGS: {
+      let configList = [];
+      if (action.configs) {
+        action.configs.map((config) => {
+          configList.push({value: config.Id, label: config.Label});
+        });
+      }
+      return state.set('configs', configList)
+    }
+    case SET_CONFIG_ID:
+    {
+      return state.set('configId', action.configId);
+    }
+    case UPDATE_IMAGE_MATRIX:
+    {
+      const matrix = state.get('createdStages');
+      const stage = matrix.get(action.stage);
+      const row = stage.get(action.row);
+      return state.set('createdStages', matrix.set(action.stage, stage.set(action.row, row.set(action.column, action.alias))));
+    }
+    case SET_RANDOM_IMAGE:
+    {
+      return state.set('randomAlias', action.alias);
+    }
+    case SET_REPLACEMENT_IMAGE:
+    {
+      return state.set('replacementAlias', action.alias);
+    }
+    case SET_REPLACEMENT_TYPE:
+    {
+      if (action.replacementType === 'user-img') {
+        state = state.set('replacementAlias', 'user-img');
+      }
+      return state.set('replacementType', action.replacementType);
+    }
+    case TOGGLE_CHANGE_IMAGE_MODAL:
+    {
+      if (typeof(action.imageAlias) === 'string') {
+        state = state.set('selectedAlias', action.imageAlias);
+      }
+      if (state.get('showChangeImageModal')) {
+        state = state.set('replacementType', undefined).set('replacementAlias', undefined);
+      }
+      return state.set('showChangeImageModal', !state.get('showChangeImageModal'));
+    }
     case TOGGLE_MAY_NOT_HAVE_IMAGE:
     {
-      return state.set('mayNotHaveSubjectImage', !state.get('mayNotHaveSubjectImage'));
+        return state.set('mayNotHaveSubjectImage', action.mayNotHaveImage);
     }
     case SET_CONFIG:
     {

@@ -18,6 +18,8 @@ import CollectionSelectView from 'views/CollectionView/CollectionSelectView';
 import NewCollectionView from 'views/CollectionView/NewCollectionView';
 import CollectionUploadView from 'views/CollectionView/CollectionUploadView';
 import ConfigView from 'views/ConfigView/ConfigView';
+import ConfigSelect from 'views/ConfigView/ConfigSelect';
+import SelectedConfigView from 'views/ConfigView/SelectedConfigView';
 import NotFoundView from 'views/NotFoundView/NotFoundView';
 
 export default (
@@ -34,7 +36,11 @@ export default (
       <Route path='new' component={NewSubjectView} />
       <Route path=':subjectId' component={SubjectProfileView} />
     </Route>
-    <Route path='tests' component={ConfigView} />
+    <Route path='configurations'>
+      <IndexRoute component={ConfigSelect} />
+      <Route path='new' component={ConfigView} />
+      <Route path=':configId' component={SelectedConfigView} />
+    </Route>
     <Route path='/404' component={NotFoundView} />
     <Redirect from='*' to='/404' />
   </Route>

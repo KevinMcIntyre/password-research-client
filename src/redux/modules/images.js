@@ -19,10 +19,13 @@ const SET_NEW_COLLECTION_ERRORS = 'SET_NEW_COLLECTION_ERRORS';
 const ADD_COLLECTION = 'ADD_COLLECTION';
 const TOGGLE_LOADING_STATE = 'TOGGLE_LOADING_STATE';
 const CLEAR_SUBJECT = 'CLEAR_SUBJECT';
+const RESET_COLLECTION_SELECTION = 'RESET_COLLECTION_SELECTION';
 
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const resetCollectionSelection = () => ({type: RESET_COLLECTION_SELECTION});
+
 export const setSubjectLoadingState = (loading, text) => ({type: TOGGLE_LOADING_STATE, loading: loading, text: text});
 
 export const clearSubject = () => ({type: CLEAR_SUBJECT});
@@ -67,7 +70,7 @@ export const setCollections = (collections) => ({type: SET_COLLECTIONS, collecti
 
 export const setCollection = (collection) => ({type: SET_COLLECTION, collection: collection});
 
-export const loadCollections = (collectionId) => {
+export const loadCollections = (collectionId, keepLoading) => {
   return dispatch => {
     return agent
       .get('http://localhost:7000/collections/list')
@@ -88,9 +91,11 @@ export const loadCollections = (collectionId) => {
               }
             });
           } else {
-            setTimeout(function() {
-              dispatch(setLoadingState(false));
-            }, 1000);
+            if (!keepLoading) {
+              setTimeout(function() {
+                dispatch(setLoadingState(false));
+              }, 1000);
+            }
           }
         }
       });
@@ -241,6 +246,10 @@ export default function imageReducer(state = imagesState, action = null) {
   const imagesKey = action.subjectId ? 'subjectImages' : 'collectionImages';
   let map = state.get(key);
   switch (action.type) {
+    case RESET_COLLECTION_SELECTION: {
+      map = map.set('currentCollection', undefined).set('collectionImages', []);
+      return state.set(key, map);
+    }
     case CLEAR_SUBJECT: {
       return state.set('subject', Map({
         'uploadImages': [],
