@@ -1,4 +1,4 @@
-import Immutable from 'immutable'
+import Immutable from 'immutable';
 import { setLoadingState } from './app';
 import _agent from 'superagent';
 import _promise from 'bluebird';
@@ -57,10 +57,11 @@ export const loadConfigImages = (configId) => {
     }).end()
       .then(function (res) {
         const json = JSON.parse(res.text);
+        console.log(json);
         dispatch(setConfigId(configId));
-        dispatch(setConfig(json.Name, json.Rows, json.Columns, json.Stages));
-        dispatch(toggleMayNotHaveImage(json.ImageMaybeNotPresent));
-        dispatch(setConfigStages(Immutable.fromJS(json.Matrix)));
+        dispatch(setConfig(json.name, json.rows, json.columns, json.stages));
+        dispatch(toggleMayNotHaveImage(json.imageMaybeNotPresent));
+        dispatch(setConfigStages(Immutable.fromJS(json.matrix)));
         setTimeout(function() {
           dispatch(setLoadingState(false));
         }, 1000);
@@ -74,7 +75,7 @@ export const setConfigs = (configs) => ({type: SET_CONFIGS, configs: configs});
 export const loadConfigs = (configId, imageMaybeNotPresent) => {
   return dispatch => {
     return agent
-      .get('http://localhost:7000/config/list')
+      .get('http://localhost:7000/configs/list')
       .end((err, res) => {
         if (err) {
           console.log(err);

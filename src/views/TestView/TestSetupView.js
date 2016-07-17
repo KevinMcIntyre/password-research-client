@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Button, Input } from 'react-bootstrap';
 import { store } from '../../main';
+import UserImageModal from './UserImageModal';
 import { actions as appActions } from '../../redux/modules/app';
 import { actions as viewActions, wizardStages } from '../../redux/modules/tests';
 import { actions as subjectActions } from '../../redux/modules/subjects';
@@ -17,7 +18,7 @@ export class TestSetupView extends React.Component {
     super();
     this.setSubject = this.setSubject.bind(this);
     this.setTest = this.setTest.bind(this);
-    this.setImageTestType = this.setImageTestType.bind(this);
+    this.setConfig = this.setConfig.bind(this);
     this.renderSubjectSelect = this.renderSubjectSelect.bind(this);
     this.renderImagePassSetup = this.renderImagePassSetup.bind(this);
     this.renderConfirmation = this.renderConfirmation.bind(this);
@@ -37,11 +38,17 @@ export class TestSetupView extends React.Component {
     if (this.props.viewState.subjects.get('subjectList').length === 0) {
       store.dispatch(appActions.setLoadingState(true, 'Getting subjects'));
     }
+    if (this.props.viewState.tests.get('imageTestOptionList').length === 0) {
+      store.dispatch(appActions.setLoadingState(true, 'Getting test configurations'));
+    }
   }
 
   componentDidMount() {
     if (this.props.viewState.subjects.get('subjectList').length === 0) {
       store.dispatch(subjectActions.loadSubjects());
+    }
+    if (this.props.viewState.tests.get('imageTestOptionList').length === 0) {
+      store.dispatch(viewActions.loadConfigs());
     }
   }
 
@@ -51,18 +58,22 @@ export class TestSetupView extends React.Component {
 
   setSubject(subject) {
     if (subject) {
-      this.props.setSubject(subject.value);
+      this.props.setSubject(subject.value, this.props.viewState.subjects.get('subjectMap').get(subject.value));
     } else {
       this.props.setSubject(undefined);
     }
   }
 
-  setTest(testType) {
-    this.props.setTest(testType);
+  setConfig(config) {
+    if (config) {
+      this.props.loadConfigSettings(config.value);
+    } else {
+      this.props.loadConfigSettings(undefined);
+    }
   }
 
-  setImageTestType(testType) {
-    console.log(testType);
+  setTest(testType) {
+    this.props.setTest(testType);
   }
 
   renderSubjectSelect() {
@@ -75,7 +86,7 @@ export class TestSetupView extends React.Component {
           <h4 className={this.props.viewState.tests.get('subjectSelectError') ? classes.testSetupErrorHeading : ''}>
             Select a subject: </h4>
           <Select
-            value={this.props.viewState.tests.get('subject')}
+            value={this.props.viewState.tests.get('subjectId')}
             options={this.props.viewState.subjects.get('subjectList')}
             onChange={this.setSubject}
             />
@@ -115,11 +126,25 @@ export class TestSetupView extends React.Component {
   }
 
   renderImagePassSetup() {
+    let configbox;
+    if (this.props.viewState.tests.get('imageTestOption')) {
+      configbox = <ConfigBox
+                    configName={this.props.viewState.tests.get('config').get('name')}
+                    rows={this.props.viewState.tests.get('config').get('rows')}
+                    columns={this.props.viewState.tests.get('config').get('columns')}
+                    stages={this.props.viewState.tests.get('config').get('stages')}
+                    imageMayNotBePresent={this.props.viewState.tests.get('config').get('imageMayNotBePresent')}
+                    userImages={this.props.viewState.tests.get('config').get('userImages')}
+                  />;
+    } else {
+      configbox = <div></div>;
+    }
     return (
       <div className='container text-center'>
         <h3>Pass-Image Test Setup</h3>
         <br/>
-        <h4>Select an option set from the dropdown below.</h4>
+        <h4>Select a test configuration from the dropdown below.</h4>
+        <h4>After selecting your configuration, set the user images by clicking 'Set Image'.</h4>
         <h4>Option sets can be created in the 'Administration' section under 'Preferences'</h4>
         <br/>
 
@@ -127,16 +152,19 @@ export class TestSetupView extends React.Component {
           <Select
             value={this.props.viewState.tests.get('imageTestOption')}
             options={this.props.viewState.tests.get('imageTestOptionList')}
-            onChange={this.setImageTestType}
-            clearable={false}
-            />
+            onChange={this.setConfig}
+          />
         </div>
-        <ConfigBox />
+        {configbox}
         <br/>
         <div className={classes.buttonGroup}>
           <Button className={classes.backButton} bsSize={'large'} onClick={this.wizardBackButton}>Back</Button>
           <Button bsSize={'large'} onClick={this.wizardNextButton}>Next</Button>
         </div>
+        <UserImageModal
+          show={true}
+          subjectName={this.props.viewState.tests.get('subjectName')}
+        />
       </div>
     );
   }
@@ -156,7 +184,7 @@ export class TestSetupView extends React.Component {
                     Subject:
                   </td>
                   <td>
-                    {this.props.viewState.subjects.get('subjectMap').get(this.props.viewState.tests.get('subject'))}
+                    {this.props.viewState.tests.get('subjectName')}
                   </td>
                 </tr>
                 <tr>

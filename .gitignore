@@ -1,7 +1,8 @@
 .DS_STORE
 *.log
+*.iml
 
 node_modules
-
+.idea
 dist
 coverage

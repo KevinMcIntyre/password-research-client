@@ -1,4 +1,10 @@
-import { Map } from 'immutable';
+import Immutable from 'immutable';
+import { setLoadingState } from './app.js';
+import _agent from 'superagent';
+import _promise from 'bluebird';
+import _agent_promise from 'superagent-promise';
+
+const agent = _agent_promise(_agent, _promise);
 
 // ------------------------------------
 // Constants
@@ -8,6 +14,8 @@ const SET_TEST = 'SET_TEST';
 const INCREMENT_WIZARD = 'INCREMENT_WIZARD';
 const DECREMENT_WIZARD = 'DECREMENT_WIZARD';
 const RESET_TEST_SETUP = 'RESET_TEST_SETUP';
+const SET_CONFIGS = 'SET_CONFIGS';
+const SET_TEST_CONFIG = 'SET_TEST_CONFIG';
 
 // ------------------------------------
 // Wizard Stage Constants
@@ -25,45 +33,174 @@ export const wizardStages = {
 // ------------------------------------
 // Actions
 // ------------------------------------
-export const setSubject = (subjectId) => ({type: SET_SUBJECT, subjectId: subjectId});
+export const setSubject = (subjectId, subjectName) => ({type: SET_SUBJECT, subjectId: subjectId, subjectName: subjectName});
 export const setTest = (testType) => ({type: SET_TEST, testType: testType});
 export const incrementWizard = () => ({type: INCREMENT_WIZARD});
 export const decrementWizard = () => ({type: DECREMENT_WIZARD});
 export const resetTestSetup = () => ({type: RESET_TEST_SETUP});
+export const setConfigs = (configs) => ({type: SET_CONFIGS, configs: configs});
+export const setConfig = (id, name, rows, columns, stages, imageMayNotBePresent, userImages) => ({
+  type: SET_TEST_CONFIG,
+  id: id,
+  name: name,
+  rows: rows,
+  columns: columns,
+  stages: stages,
+  imageMayNotBePresent: imageMayNotBePresent,
+  userImages: userImages
+});
+
+export const loadConfigSettings = (configId) => {
+  return dispatch => {
+    if (configId === undefined) {
+      dispatch(setConfig());
+    } else {
+      let req = agent.get('http://localhost:7000/config/' + configId);
+      return req.set({
+        'Access-Control-Allow-Origin': 'localhost:7000'
+      }).end()
+        .then(function (res) {
+          const json = JSON.parse(res.text);
+          dispatch(
+            setConfig(
+              json.configId,
+              json.name,
+              json.rows,
+              json.columns,
+              json.stages,
+              json.imageMaybeNotPresent,
+              json.userImages
+            )
+          );
+        }, function (err) {
+          console.log(err);
+        });
+    }
+  };
+};
+
+export const loadConfigs = () => {
+  return dispatch => {
+    return agent
+      .get('http://localhost:7000/configs/list')
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+        } else {
+          const response = JSON.parse(res.text);
+          dispatch(setConfigs(response));
+          setTimeout(function() {
+            dispatch(setLoadingState(false));
+          }, 1000);
+        }
+      });
+  };
+};
 
 export const actions = {
   setSubject,
   setTest,
   incrementWizard,
   decrementWizard,
-  resetTestSetup
+  resetTestSetup,
+  loadConfigs,
+  loadConfigSettings
 };
 
 // ------------------------------------
 // State
 // ------------------------------------
-const testViewState = Map({
-  subject: undefined,
+const testViewState = Immutable.Map({
+  subjectId: undefined,
+  subjectName: undefined,
   wizardStage: SUBJECT_SELECT,
   testType: undefined,
   subjectSelectError: false,
   testTypeError: false,
-  imageTestOption: -1,
-  imageTestOptionList: [{
-    value: -1,
-    label: 'Default'
-  }]
+  imageTestOption: undefined,
+  imageTestOptionList: [],
+  config: Immutable.Map({
+    name: undefined,
+    rows: undefined,
+    columns: undefined,
+    stages: undefined,
+    imageMayNotBePresent: undefined,
+    userImages: []
+  })
 });
 // ------------------------------------
 // Reducer
 // ------------------------------------
 export default function testViewReducer(state = testViewState, action = null) {
   switch (action.type) {
+    case SET_TEST_CONFIG: {
+      if (!action || !action.name) {
+        state = state.set('imageTestOption', undefined);
+        return state.set('config', Immutable.Map({
+          name: undefined,
+          rows: undefined,
+          columns: undefined,
+          stages: undefined,
+          imageMayNotBePresent: undefined,
+          userImages: undefined
+        }));
+      }
+
+      let config = state.get('config');
+      config = config.set('name', action.name);
+      config = config.set('rows', action.rows);
+      config = config.set('columns', action.columns);
+      config = config.set('stages', action.stages);
+      config = config.set('imageMayNotBePresent', action.imageMayNotBePresent);
+
+      let userImages = action.userImages;
+
+      userImages.sort(function(a, b) {
+        if (a.stage === b.stage) {
+          if (a.row === b.row) {
+            if (a.column < b.column) {
+              return -1;
+            } else {
+              return 1;
+            }
+          } else {
+            if (a.row < b.row) {
+              return -1;
+            } else {
+              return 1;
+            }
+          }
+        } else {
+          if (a.stage < b.stage) {
+            return -1;
+          } else {
+            return 1;
+          }
+        }
+      });
+
+      userImages = userImages.map(function(userImage, index) {
+        return Immutable.fromJS(userImage).set('image', undefined).set('id', index);
+      });
+
+      config = config.set('userImages', userImages);
+      state = state.set('imageTestOption', action.id);
+      return state.set('config', config);
+    }
+    case SET_CONFIGS: {
+      let configList = [];
+      if (action.configs) {
+        action.configs.map((config) => {
+          configList.push({value: config.Id, label: config.Label});
+        });
+      }
+      return state.set('imageTestOptionList', configList);
+    }
     case SET_SUBJECT: {
       if (state.get('subjectSelectError')) {
         state = state.set('subjectSelectError', false);
       }
-      return state.set('subject', action.subjectId);
+      return state.set('subjectId', action.subjectId).set('subjectName', action.subjectName);
     }
     case SET_TEST: {
       if (state.get('testTypeError')) {
@@ -74,7 +211,7 @@ export default function testViewReducer(state = testViewState, action = null) {
     case INCREMENT_WIZARD: {
       let currentState = state.get('wizardStage');
       if (currentState === SUBJECT_SELECT) {
-        if (state.get('subject') === undefined) {
+        if (state.get('subjectId') === undefined) {
           state = state.set('subjectSelectError', true);
         } else {
           state = state.set('subjectSelectError', false);
@@ -84,7 +221,7 @@ export default function testViewReducer(state = testViewState, action = null) {
         } else {
           state = state.set('testTypeError', false);
         }
-        if (state.get('subject') === undefined || state.get('testType') === undefined) {
+        if (state.get('subjectId') === undefined || state.get('testType') === undefined) {
           return state;
         }
         if (state.get('testType') === 'image') {

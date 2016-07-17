@@ -1,14 +1,15 @@
 import React from 'react';
+import { Button } from 'react-bootstrap';
+import Icon from 'react-fa';
 import classes from './TestView.scss';
 
 export default class ConfigBox extends React.Component {
-
   render() {
     return (
       <div className={classes.imageSettingContainer}>
         <div className={classes.imageTestSettings}>
           <div className={classes.imageTestSettingHeader}>
-            <h3><span className={classes.optionKey}>Option Set:</span> Default</h3>
+            <h3><span className={classes.optionKey}>Test Configuration:</span> { this.props.configName } </h3>
           </div>
           <div className={classes.imageTestSettingsTableContainer}>
             <table>
@@ -18,7 +19,7 @@ export default class ConfigBox extends React.Component {
                   Matrix size:
                 </td>
                 <td>
-                  4 x 4
+                  { this.props.rows } x { this.props.columns }
                 </td>
               </tr>
               <tr>
@@ -26,7 +27,7 @@ export default class ConfigBox extends React.Component {
                   Number of stages:
                 </td>
                 <td>
-                  6
+                  { this.props.stages }
                 </td>
               </tr>
               <tr>
@@ -34,64 +35,41 @@ export default class ConfigBox extends React.Component {
                   Image May Not Be Present:
                 </td>
                 <td>
-                  True
+                  { this.props.imageMayNotBePresent ? <span>True</span> : <span>False</span> }
                 </td>
               </tr>
               <tr>
                 <td className={[classes.stagesKey]}>
-                  Stages:
+                  User Images:
                 </td>
                 <td>
-                  <table>
+                  <table className={classes.userImageListing}>
                     <tbody>
-                    <tr>
-                      <td>
-                        Stage 1:
-                      </td>
-                      <td>
-                        Random
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Stage 2:
-                      </td>
-                      <td>
-                        Random
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Stage 3:
-                      </td>
-                      <td>
-                        Custom stage
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Stage 4:
-                      </td>
-                      <td>
-                        Collection - 'Flowers'
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Stage 5:
-                      </td>
-                      <td>
-                        Custom stage
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        Stage 6:
-                      </td>
-                      <td>
-                        Random
-                      </td>
-                    </tr>
+                    {this.props.userImages.map(function(userImage, index) {
+                      return (
+                        <tr key={index}>
+                          <td>
+                            Stage: {userImage.get('stage')}
+                          </td>
+                          <td>
+                            Row: {userImage.get('row')}
+                          </td>
+                          <td>
+                            Column: {userImage.get('column')}
+                          </td>
+                          <td>
+                            <Button bsSize="xsmall" bsStyle="primary">Set Image</Button>
+                          </td>
+                          <td>
+                            {
+                              userImage.get('image') ?
+                              <Icon name="check" className={classes.green} /> :
+                              <Icon name="times" className={classes.red} />
+                            }
+                          </td>
+                        </tr>
+                      )
+                    })}
                     </tbody>
                   </table>
                 </td>
