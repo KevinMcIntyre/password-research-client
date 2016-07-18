@@ -16,6 +16,8 @@ const DECREMENT_WIZARD = 'DECREMENT_WIZARD';
 const RESET_TEST_SETUP = 'RESET_TEST_SETUP';
 const SET_CONFIGS = 'SET_CONFIGS';
 const SET_TEST_CONFIG = 'SET_TEST_CONFIG';
+const SET_USER_IMAGE_SELECT = 'SET_USER_IMAGE_SELECT';
+const SELECT_USER_IMAGE = 'SELECT_USER_IMAGE';
 
 // ------------------------------------
 // Wizard Stage Constants
@@ -33,7 +35,9 @@ export const wizardStages = {
 // ------------------------------------
 // Actions
 // ------------------------------------
-export const setSubject = (subjectId, subjectName) => ({type: SET_SUBJECT, subjectId: subjectId, subjectName: subjectName});
+export const selectUserImage = (index, alias) => ({type: SELECT_USER_IMAGE, index: index, alias: alias});
+export const setUserImageSelect = (userImageIndex) =>({type: SET_USER_IMAGE_SELECT, userImageIndex: userImageIndex});
+export const setSubject = (subjectId, subjectName, subjectImages) => ({type: SET_SUBJECT, subjectId: subjectId, subjectName: subjectName, subjectImages: subjectImages});
 export const setTest = (testType) => ({type: SET_TEST, testType: testType});
 export const incrementWizard = () => ({type: INCREMENT_WIZARD});
 export const decrementWizard = () => ({type: DECREMENT_WIZARD});
@@ -49,6 +53,25 @@ export const setConfig = (id, name, rows, columns, stages, imageMayNotBePresent,
   imageMayNotBePresent: imageMayNotBePresent,
   userImages: userImages
 });
+
+export const selectSubject = (subjectId, subjectName) => {
+  return dispatch => {
+    if (!subjectId) {
+      dispatch(setSubject(undefined));
+    } else {
+      let req = agent.get('http://localhost:7000/subject/images/' + subjectId);
+      return req.set({
+        'Access-Control-Allow-Origin': 'localhost:7000'
+      }).end()
+        .then(function (res) {
+          const subjectImages = JSON.parse(res.text);
+          dispatch(setSubject(subjectId, subjectName, subjectImages));
+        }, function (err) {
+          console.log(err);
+        });
+    }
+  }
+};
 
 export const loadConfigSettings = (configId) => {
   return dispatch => {
@@ -104,7 +127,10 @@ export const actions = {
   decrementWizard,
   resetTestSetup,
   loadConfigs,
-  loadConfigSettings
+  loadConfigSettings,
+  selectSubject,
+  setUserImageSelect,
+  selectUserImage
 };
 
 // ------------------------------------
@@ -113,12 +139,16 @@ export const actions = {
 const testViewState = Immutable.Map({
   subjectId: undefined,
   subjectName: undefined,
+  subjectPassImages: [],
   wizardStage: SUBJECT_SELECT,
   testType: undefined,
   subjectSelectError: false,
   testTypeError: false,
+  noConfigSelectedError: false,
+  userPassImageError: false,
   imageTestOption: undefined,
   imageTestOptionList: [],
+  selectingImageId: undefined,
   config: Immutable.Map({
     name: undefined,
     rows: undefined,
@@ -133,9 +163,37 @@ const testViewState = Immutable.Map({
 // ------------------------------------
 export default function testViewReducer(state = testViewState, action = null) {
   switch (action.type) {
+    case SELECT_USER_IMAGE: {
+      const config = state.get('config');
+      let updatedImages =config.get('userImages').map(function(userImage){
+        if (userImage.get('id') === action.index) {
+          return userImage.set('image', action.alias)
+        }
+        return userImage;
+      });
+
+      if (state.get('userPassImageError')) {
+        let allImagesSelected = true;
+        for (let i =0; i < updatedImages.length; i++) {
+          const userImage = updatedImages[i];
+          if (!userImage.get('image')) {
+            allImagesSelected = false;
+            break;
+          }
+        }
+        if (allImagesSelected) {
+          state = state.set('userPassImageError', false);
+        }
+      }
+
+      return state.set('config', config.set('userImages', updatedImages)).set('selectingImageId', undefined);
+    }
+    case SET_USER_IMAGE_SELECT: {
+      return state.set('selectingImageId', action.userImageIndex);
+    }
     case SET_TEST_CONFIG: {
       if (!action || !action.name) {
-        state = state.set('imageTestOption', undefined);
+        state = state.set('imageTestOption', undefined).set('userPassImageError', false);
         return state.set('config', Immutable.Map({
           name: undefined,
           rows: undefined,
@@ -185,7 +243,7 @@ export default function testViewReducer(state = testViewState, action = null) {
 
       config = config.set('userImages', userImages);
       state = state.set('imageTestOption', action.id);
-      return state.set('config', config);
+      return state.set('config', config).set('noConfigSelectedError', false).set('userPassImageError', false);
     }
     case SET_CONFIGS: {
       let configList = [];
@@ -200,7 +258,9 @@ export default function testViewReducer(state = testViewState, action = null) {
       if (state.get('subjectSelectError')) {
         state = state.set('subjectSelectError', false);
       }
-      return state.set('subjectId', action.subjectId).set('subjectName', action.subjectName);
+      return state.set('subjectId', action.subjectId)
+        .set('subjectName', action.subjectName)
+        .set('subjectImages', action.subjectImages);
     }
     case SET_TEST: {
       if (state.get('testTypeError')) {
@@ -228,6 +288,26 @@ export default function testViewReducer(state = testViewState, action = null) {
           return state.set('wizardStage', IMAGEPASS_SETUP).set('subjectSelectError', false);
         } else {
           return state.set('wizardStage', CONFIRMATION).set('subjectSelectError', false);
+        }
+      }
+      if (currentState === IMAGEPASS_SETUP) {
+        if (!state.get('imageTestOption')) {
+          return state.set('noConfigSelectedError', true);
+        } else {
+          let userImages = state.get('config').get('userImages');
+          let allImagesSelected = true;
+          for (let i =0; i < userImages.length; i++) {
+            const userImage = userImages[i];
+            if (!userImage.get('image')) {
+              allImagesSelected = false;
+              break;
+            }
+          }
+          if (allImagesSelected) {
+           return state.set('userPassImageError', false).set('wizardStage', CONFIRMATION);
+          } else {
+            return state.set('userPassImageError', true);
+          }
         }
       }
       if (currentState === CONFIRMATION) {

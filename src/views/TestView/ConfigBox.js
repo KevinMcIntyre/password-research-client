@@ -4,6 +4,10 @@ import Icon from 'react-fa';
 import classes from './TestView.scss';
 
 export default class ConfigBox extends React.Component {
+  constructor() {
+    super();
+  }
+
   render() {
     return (
       <div className={classes.imageSettingContainer}>
@@ -40,7 +44,7 @@ export default class ConfigBox extends React.Component {
               </tr>
               <tr>
                 <td className={[classes.stagesKey]}>
-                  User Images:
+                  User Pass-Images:
                 </td>
                 <td>
                   <table className={classes.userImageListing}>
@@ -58,7 +62,7 @@ export default class ConfigBox extends React.Component {
                             Column: {userImage.get('column')}
                           </td>
                           <td>
-                            <Button bsSize="xsmall" bsStyle="primary">Set Image</Button>
+                            <Button bsSize="xsmall" bsStyle="primary" onClick={this.props.setSelectingImageId.bind(null, userImage.get('id'))} >Set Image</Button>
                           </td>
                           <td>
                             {
@@ -69,7 +73,7 @@ export default class ConfigBox extends React.Component {
                           </td>
                         </tr>
                       )
-                    })}
+                    }.bind(this))}
                     </tbody>
                   </table>
                 </td>

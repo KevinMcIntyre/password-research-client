@@ -58,9 +58,9 @@ export class TestSetupView extends React.Component {
 
   setSubject(subject) {
     if (subject) {
-      this.props.setSubject(subject.value, this.props.viewState.subjects.get('subjectMap').get(subject.value));
+      this.props.selectSubject(subject.value, this.props.viewState.subjects.get('subjectMap').get(subject.value));
     } else {
-      this.props.setSubject(undefined);
+      this.props.selectSubject(undefined);
     }
   }
 
@@ -135,6 +135,7 @@ export class TestSetupView extends React.Component {
                     stages={this.props.viewState.tests.get('config').get('stages')}
                     imageMayNotBePresent={this.props.viewState.tests.get('config').get('imageMayNotBePresent')}
                     userImages={this.props.viewState.tests.get('config').get('userImages')}
+                    setSelectingImageId={this.props.setUserImageSelect}
                   />;
     } else {
       configbox = <div></div>;
@@ -156,7 +157,19 @@ export class TestSetupView extends React.Component {
           />
         </div>
         {configbox}
-        <br/>
+        {this.props.viewState.tests.get('noConfigSelectedError') ?
+          <div>
+            <h4 className={classes.testSetupErrorText}>Please select a test configuration to continue.</h4>
+          </div> :
+          <span></span>
+        }
+        {this.props.viewState.tests.get('userPassImageError') ?
+          <div>
+            <br/>
+            <h4 className={classes.testSetupErrorText}>All user pass-images within the configuration must be set before continuing.</h4>
+          </div> :
+          <span></span>
+        }
         <div className={classes.buttonGroup}>
           <Button className={classes.backButton} bsSize={'large'} onClick={this.wizardBackButton}>Back</Button>
           <Button bsSize={'large'} onClick={this.wizardNextButton}>Next</Button>
@@ -164,6 +177,10 @@ export class TestSetupView extends React.Component {
         <UserImageModal
           show={true}
           subjectName={this.props.viewState.tests.get('subjectName')}
+          subjectImages={this.props.viewState.tests.get('subjectImages')}
+          selectingImageId={this.props.viewState.tests.get('selectingImageId')}
+          closeModal={this.props.setUserImageSelect.bind(null, undefined)}
+          selectImage={this.props.selectUserImage}
         />
       </div>
     );
