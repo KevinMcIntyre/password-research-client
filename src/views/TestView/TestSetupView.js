@@ -6,7 +6,9 @@ import UserImageModal from './UserImageModal';
 import { actions as appActions } from '../../redux/modules/app';
 import { actions as viewActions, wizardStages } from '../../redux/modules/tests';
 import { actions as subjectActions } from '../../redux/modules/subjects';
+import { actions as configActions } from '../../redux/modules/config';
 import ConfigBox from './ConfigBox.js';
+import ImageMatrix from '../../components/ImageMatrix/ImageMatrix';
 import Select from 'react-select';
 import classes from './TestView.scss';
 
@@ -190,120 +192,60 @@ export class TestSetupView extends React.Component {
     return (
       <div className='container text-center'>
         <h3>Confirm Trial Settings</h3>
-
-        <div className={classes.imageSettingContainer}>
-          <div className={classes.imageTestSettings}>
-            <div className={classes.imageTestSettingsTableContainer}>
-              <table>
-                <tbody>
-                <tr>
-                  <td className={classes.optionKey}>
-                    Subject:
-                  </td>
-                  <td>
-                    {this.props.viewState.tests.get('subjectName')}
-                  </td>
-                </tr>
-                <tr>
-                  <td className={classes.optionKey}>
-                    Authentication Type:
-                  </td>
-                  <td>
-                    {this.props.viewState.tests.get('testType') === 'image' ? 'Pass-Image' : ''}
-                    {this.props.viewState.tests.get('testType') === 'password' ? 'Password' : ''}
-                    {this.props.viewState.tests.get('testType') === 'pin' ? 'Pin Number' : ''}
-                  </td>
-                </tr>
-                {this.props.viewState.tests.get('testType') === 'image' ? (<div>
-                  <tr>
-                    <td className={classes.optionKey}>
-                      Matrix size:
-                    </td>
-                    <td>
-                      4 x 4
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className={classes.optionKey}>
-                      Number of stages:
-                    </td>
-                    <td>
-                      6
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className={classes.optionKey}>
-                      Image May Not Be Present:
-                    </td>
-                    <td>
-                      True
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className={[classes.stagesKey]}>
-                      Stages:
-                    </td>
-                    <td>
-                      <table>
-                        <tbody>
-                        <tr>
-                          <td>
-                            Stage 1:
-                          </td>
-                          <td>
-                            Random
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            Stage 2:
-                          </td>
-                          <td>
-                            Random
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            Stage 3:
-                          </td>
-                          <td>
-                            Custom stage
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            Stage 4:
-                          </td>
-                          <td>
-                            Collection - 'Flowers'
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            Stage 5:
-                          </td>
-                          <td>
-                            Custom stage
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            Stage 6:
-                          </td>
-                          <td>
-                            Random
-                          </td>
-                        </tr>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </div>) : (<span></span>) }
-                </tbody>
-              </table>
+        {
+          this.props.viewState.tests.get('testType') === 'image' ?
+          <div>
+            <h4>The subject will be presented with the following authentication test: </h4>
+            <ImageMatrix rows={parseInt(this.props.viewState.config.get('rows'), 10)}
+                         columns={parseInt(this.props.viewState.config.get('columns'), 10)}
+                         noneEnabled={this.props.viewState.config.get('mayNotHaveSubjectImage')}
+                         matrix={this.props.viewState.config.get('createdStages') != undefined ? this.props.viewState.config.get('createdStages').get(this.props.viewState.config.get('currentStageBeingSet').toString()) : undefined}
+                         currentStage={this.props.viewState.config.get('currentStageBeingSet')}
+                         totalStages={this.props.viewState.config.get('stages')}
+                         onImageClick={undefined}
+                         random={false}
+            />
+            <div className={classes.buttonGroup}>
+              {this.props.viewState.config.get("currentStageBeingSet") > 1 ?
+                <Button className={classes.backButton} bsSize={'large'} onClick={configActions.decrementStage}>Previous
+                  Stage</Button> :
+                <span></span>
+              }
+              {this.props.viewState.config.get("currentStageBeingSet") < this.props.viewState.config.get('stages') ?
+                <Button bsSize={'large'} onClick={configActions.incrementStage}>Next Stage</Button> :
+                <span></span>
+              }
             </div>
-          </div>
-        </div>
+            <h4>Please review the image matrix for each stage to ensure you are satisfied.</h4>
+          </div> :
+            <div className={classes.imageSettingContainer}>
+              <div className={classes.imageTestSettings}>
+                <div className={classes.imageTestSettingsTableContainer}>
+                  <table>
+                    <tbody>
+                    <tr>
+                      <td className={classes.optionKey}>
+                        Subject:
+                      </td>
+                      <td>
+                        {this.props.viewState.tests.get('subjectName')}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className={classes.optionKey}>
+                        Authentication Type:
+                      </td>
+                      <td>
+                        {this.props.viewState.tests.get('testType') === 'password' ? 'Password' : ''}
+                        {this.props.viewState.tests.get('testType') === 'pin' ? 'Pin Number' : ''}
+                      </td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+        }
         <br/>
 
         <div className={classes.confirmationWarning}>

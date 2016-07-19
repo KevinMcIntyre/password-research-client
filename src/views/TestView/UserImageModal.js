@@ -41,7 +41,7 @@ export default class UserImageModal extends React.Component {
       );
     } else {
       return (
-        <Modal show={this.props.show}>
+        <Modal show={this.props.selectingImageId >= 0}>
           <Modal.Header>
             <Modal.Title id='contained-modal-title-lg'>
               {this.props.subjectName}'s Pass Images
@@ -49,6 +49,10 @@ export default class UserImageModal extends React.Component {
           </Modal.Header>
           <Modal.Body>
             <h4>This user has no pass-images set.</h4>
+            <br/>
+            <div>
+              <Button bsStyle="primary" onClick={this.props.closeModal.bind(null, undefined)}>Close</Button>
+            </div>
           </Modal.Body>
         </Modal>
       );

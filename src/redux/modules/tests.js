@@ -260,7 +260,17 @@ export default function testViewReducer(state = testViewState, action = null) {
       }
       return state.set('subjectId', action.subjectId)
         .set('subjectName', action.subjectName)
-        .set('subjectImages', action.subjectImages);
+        .set('subjectImages', action.subjectImages)
+        .set('noConfigSelectedError', false).set('userPassImageError', false)
+        .set('imageTestOption', undefined)
+        .set('config', Immutable.Map({
+          name: undefined,
+          rows: undefined,
+          columns: undefined,
+          stages: undefined,
+          imageMayNotBePresent: undefined,
+          userImages: []
+        }));
     }
     case SET_TEST: {
       if (state.get('testTypeError')) {
