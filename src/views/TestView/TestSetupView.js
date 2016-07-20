@@ -26,6 +26,38 @@ export class TestSetupView extends React.Component {
     this.renderConfirmation = this.renderConfirmation.bind(this);
     this.wizardNextButton = this.wizardNextButton.bind(this);
     this.wizardBackButton = this.wizardBackButton.bind(this);
+    this.incrementStage = this.incrementStage.bind(this);
+    this.decrementStage = this.decrementStage.bind(this);
+    this.setUserImage = this.setUserImage.bind(this);
+  }
+
+  setUserImage(selectIndex, alias) {
+    this.props.selectUserImage(selectIndex, alias);
+
+    const imagesForSelection = this.props.viewState.tests.get('config').get('userImages');
+    let selectedImage;
+    for (let i = 0; i < imagesForSelection.length; i++) {
+      if (imagesForSelection[i].get('id') === selectIndex) {
+        selectedImage = imagesForSelection[i];
+      }
+    }
+
+    store.dispatch(
+      configActions.setSpecificImageInMatrix(
+        selectedImage.get('stage'),
+        selectedImage.get('row'),
+        selectedImage.get('column'),
+        alias
+      )
+    )
+  }
+
+  incrementStage() {
+    store.dispatch(configActions.incrementStage());
+  }
+
+  decrementStage() {
+    store.dispatch(configActions.decrementStage());
   }
 
   wizardNextButton() {
@@ -69,6 +101,7 @@ export class TestSetupView extends React.Component {
   setConfig(config) {
     if (config) {
       this.props.loadConfigSettings(config.value);
+      store.dispatch(configActions.loadConfigImages(config.value));
     } else {
       this.props.loadConfigSettings(undefined);
     }
@@ -182,7 +215,7 @@ export class TestSetupView extends React.Component {
           subjectImages={this.props.viewState.tests.get('subjectImages')}
           selectingImageId={this.props.viewState.tests.get('selectingImageId')}
           closeModal={this.props.setUserImageSelect.bind(null, undefined)}
-          selectImage={this.props.selectUserImage}
+          selectImage={this.setUserImage}
         />
       </div>
     );
@@ -199,7 +232,9 @@ export class TestSetupView extends React.Component {
             <ImageMatrix rows={parseInt(this.props.viewState.config.get('rows'), 10)}
                          columns={parseInt(this.props.viewState.config.get('columns'), 10)}
                          noneEnabled={this.props.viewState.config.get('mayNotHaveSubjectImage')}
-                         matrix={this.props.viewState.config.get('createdStages') != undefined ? this.props.viewState.config.get('createdStages').get(this.props.viewState.config.get('currentStageBeingSet').toString()) : undefined}
+                         matrix={this.props.viewState.config.get('createdStages') != undefined ?
+                           this.props.viewState.config.get('createdStages').get(this.props.viewState.config.get('currentStageBeingSet').toString()) :
+                           undefined}
                          currentStage={this.props.viewState.config.get('currentStageBeingSet')}
                          totalStages={this.props.viewState.config.get('stages')}
                          onImageClick={undefined}
@@ -207,12 +242,12 @@ export class TestSetupView extends React.Component {
             />
             <div className={classes.buttonGroup}>
               {this.props.viewState.config.get("currentStageBeingSet") > 1 ?
-                <Button className={classes.backButton} bsSize={'large'} onClick={configActions.decrementStage}>Previous
+                <Button className={classes.backButton} bsSize={'large'} onClick={this.decrementStage}>Previous
                   Stage</Button> :
                 <span></span>
               }
               {this.props.viewState.config.get("currentStageBeingSet") < this.props.viewState.config.get('stages') ?
-                <Button bsSize={'large'} onClick={configActions.incrementStage}>Next Stage</Button> :
+                <Button bsSize={'large'} onClick={this.incrementStage}>Next Stage</Button> :
                 <span></span>
               }
             </div>

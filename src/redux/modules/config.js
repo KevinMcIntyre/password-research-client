@@ -29,6 +29,7 @@ const SET_CONFIGS = 'SET_CONFIGS';
 const SELECT_CONFIG = 'SELECT_CONFIG';
 const INCREMENT_STAGE = 'INCREMENT_STAGE';
 const DECREMENT_STAGE = 'DECREMENT_STAGE';
+const SET_SPECIFIC_MATRIX_IMAGE = 'SET_SPECIFIC_MATRIX_IMAGE';
 
 // ------------------------------------
 // Wizard Stage Constants
@@ -46,6 +47,13 @@ export const wizardStages = {
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const setSpecificImageInMatrix = (stage, row, column, alias) => ({
+  type: SET_SPECIFIC_MATRIX_IMAGE,
+  stage: stage,
+  row: row,
+  column: column,
+  alias: alias
+});
 const incrementStage = () => ({type: INCREMENT_STAGE});
 const decrementStage = () => ({type: DECREMENT_STAGE});
 export const loadConfigImages = (configId) => {
@@ -57,7 +65,6 @@ export const loadConfigImages = (configId) => {
     }).end()
       .then(function (res) {
         const json = JSON.parse(res.text);
-        console.log(json);
         dispatch(setConfigId(configId));
         dispatch(setConfig(json.name, json.rows, json.columns, json.stages));
         dispatch(toggleMayNotHaveImage(json.imageMaybeNotPresent));
@@ -251,7 +258,8 @@ export const actions = {
   selectConfig,
   loadConfigImages,
   incrementStage,
-  decrementStage
+  decrementStage,
+  setSpecificImageInMatrix
 };
 
 // ------------------------------------
@@ -280,6 +288,14 @@ const configViewState = Immutable.Map({
 // ------------------------------------
 export default function configViewReducer(state = configViewState, action = null) {
   switch (action.type) {
+    case SET_SPECIFIC_MATRIX_IMAGE: {
+      const matrix = state.get('createdStages');
+      let stage = matrix.get(action.stage.toString());
+      let row = stage.get(action.row.toString());
+      row = row.set(action.column.toString(), action.alias);
+      stage = stage.set(action.row.toString(), row);
+      return state.set('createdStages', matrix.set(action.stage.toString(), stage));
+    }
     case INCREMENT_STAGE: {
       const currentStage = state.get('currentStageBeingSet');
       const numberOfStages = state.get('stages');
