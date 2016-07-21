@@ -11,13 +11,14 @@ const agent = _agent_promise(_agent, _promise);
 // ------------------------------------
 const SET_SUBJECT = 'SET_SUBJECT';
 const SET_TEST = 'SET_TEST';
-const INCREMENT_WIZARD = 'INCREMENT_WIZARD';
-const DECREMENT_WIZARD = 'DECREMENT_WIZARD';
+const INCREMENT_WIZARD = 'INCREMENT_SETUP_WIZARD';
+const DECREMENT_WIZARD = 'DECREMENT_SETUP_WIZARD';
 const RESET_TEST_SETUP = 'RESET_TEST_SETUP';
 const SET_CONFIGS = 'SET_CONFIGS';
 const SET_TEST_CONFIG = 'SET_TEST_CONFIG';
 const SET_USER_IMAGE_SELECT = 'SET_USER_IMAGE_SELECT';
 const SELECT_USER_IMAGE = 'SELECT_USER_IMAGE';
+const START_TRIAL = 'START_TRIAL';
 
 // ------------------------------------
 // Wizard Stage Constants
@@ -35,6 +36,25 @@ export const wizardStages = {
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const startTrial = (subjectId, configId, passImages) => {
+  return dispatch => {
+    agent.post('http://localhost:7000/test/settings/init')
+      .post('http://localhost:7000/save/image')
+      .send(JSON.stringify({
+        'subjectId': parseInt(subjectId, 10),
+        'configId': parseInt(configId, 10),
+        'passImages': passImages
+      })).set({
+      'Access-Control-Allow-Origin': 'localhost:7000'
+    }).end()
+      .then(function (res) {
+        console.log(res);
+        dispatch(resetTestSetup());
+      }, function (err) {
+        console.log(err);
+      });
+  }
+};
 export const selectUserImage = (index, alias) => ({type: SELECT_USER_IMAGE, index: index, alias: alias});
 export const setUserImageSelect = (userImageIndex) =>({type: SET_USER_IMAGE_SELECT, userImageIndex: userImageIndex});
 export const setSubject = (subjectId, subjectName, subjectImages) => ({type: SET_SUBJECT, subjectId: subjectId, subjectName: subjectName, subjectImages: subjectImages});
@@ -130,7 +150,8 @@ export const actions = {
   loadConfigSettings,
   selectSubject,
   setUserImageSelect,
-  selectUserImage
+  selectUserImage,
+  startTrial
 };
 
 // ------------------------------------

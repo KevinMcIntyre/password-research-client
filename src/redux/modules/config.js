@@ -10,8 +10,8 @@ const agent = _agent_promise(_agent, _promise);
 // ------------------------------------
 // Constants
 // ------------------------------------
-const INCREMENT_WIZARD = 'INCREMENT_WIZARD';
-const DECREMENT_WIZARD = 'DECREMENT_WIZARD';
+const INCREMENT_WIZARD = 'INCREMENT_CONFIG_WIZARD';
+const DECREMENT_WIZARD = 'DECREMENT_CONFIG_WIZARD';
 const TOGGLE_MAY_NOT_HAVE_IMAGE = 'TOGGLE_MAY_NOT_HAVE_IMAGE';
 const SET_CONFIG = 'SET_CONFIG';
 const CLEAR_FORM = 'CLEAR_FORM';

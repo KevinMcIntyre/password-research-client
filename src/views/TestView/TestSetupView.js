@@ -29,6 +29,11 @@ export class TestSetupView extends React.Component {
     this.incrementStage = this.incrementStage.bind(this);
     this.decrementStage = this.decrementStage.bind(this);
     this.setUserImage = this.setUserImage.bind(this);
+    this.startTrial = this.startTrial.bind(this);
+  }
+
+  startTrial() {
+    this.props.startTrial();
   }
 
   setUserImage(selectIndex, alias) {
@@ -296,7 +301,7 @@ export class TestSetupView extends React.Component {
         </div>
         <div className={classes.buttonGroup}>
           <Button className={classes.backButton} bsSize={'large'} onClick={this.wizardBackButton}>Back</Button>
-          <Button bsStyle={'success'} bsSize={'large'} onClick={this.wizardNextButton}>Start Trial</Button>
+          <Button bsStyle={'success'} bsSize={'large'} onClick={this.startTrial}>Start Trial</Button>
         </div>
       </div>
     );
