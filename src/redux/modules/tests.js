@@ -38,7 +38,8 @@ export const wizardStages = {
 // ------------------------------------
 export const startTrial = (subjectId, configId, passImages) => {
   return dispatch => {
-    agent.post('http://localhost:7000/test/settings/init')
+    agent
+      .post('http://localhost:7000/test/settings/init')
       .post('http://localhost:7000/save/image')
       .send(JSON.stringify({
         'subjectId': parseInt(subjectId, 10),
