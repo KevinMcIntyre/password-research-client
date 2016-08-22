@@ -33,7 +33,15 @@ export class TestSetupView extends React.Component {
   }
 
   startTrial() {
-    this.props.startTrial();
+    this.props.startTrial(
+      this.props.viewState.tests.get('subjectId'),
+      this.props.viewState.config.get('configId'),
+      this.props.viewState.config.get('stages'),
+      this.props.viewState.config.get('rows'),
+      this.props.viewState.config.get('columns'),
+      this.props.viewState.config.get('mayNotHaveSubjectImage'),
+      this.props.viewState.config.get('createdStages')
+    );
   }
 
   setUserImage(selectIndex, alias) {

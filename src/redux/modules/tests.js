@@ -3,6 +3,7 @@ import { setLoadingState } from './app.js';
 import _agent from 'superagent';
 import _promise from 'bluebird';
 import _agent_promise from 'superagent-promise';
+import { trimMatrix } from './config'
 
 const agent = _agent_promise(_agent, _promise);
 
@@ -36,18 +37,24 @@ export const wizardStages = {
 // ------------------------------------
 // Actions
 // ------------------------------------
-export const startTrial = (subjectId, configId, passImages) => {
+export const startTrial = (subjectId, configId, stages, rows, columns, imageMaybeNotPresent, matrix) => {
   return dispatch => {
+    const request = {
+      subjectId: parseInt(subjectId, 10),
+      configId: parseInt(configId, 10),
+      stages: parseInt(stages, 10),
+      rows: parseInt(rows, 10),
+      columns: parseInt(columns, 10),
+      imageMaybeNotPresent: imageMaybeNotPresent,
+      matrix: trimMatrix(stages, rows, columns, matrix)
+    }
     agent
-      .post('http://localhost:7000/test/settings/init')
-      .post('http://localhost:7000/save/image')
-      .send(JSON.stringify({
-        'subjectId': parseInt(subjectId, 10),
-        'configId': parseInt(configId, 10),
-        'passImages': passImages
-      })).set({
+      .post('http://localhost:7000/test/settings/submit')
+      .send(JSON.stringify(request))
+      .set({
       'Access-Control-Allow-Origin': 'localhost:7000'
-    }).end()
+      })
+      .end()
       .then(function (res) {
         console.log(res);
         dispatch(resetTestSetup());
@@ -56,6 +63,7 @@ export const startTrial = (subjectId, configId, passImages) => {
       });
   }
 };
+
 export const selectUserImage = (index, alias) => ({type: SELECT_USER_IMAGE, index: index, alias: alias});
 export const setUserImageSelect = (userImageIndex) =>({type: SET_USER_IMAGE_SELECT, userImageIndex: userImageIndex});
 export const setSubject = (subjectId, subjectName, subjectImages) => ({type: SET_SUBJECT, subjectId: subjectId, subjectName: subjectName, subjectImages: subjectImages});

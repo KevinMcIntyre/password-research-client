@@ -135,7 +135,7 @@ export const saveConfig = (configId, name, stages, rows, columns, imageMaybeNotP
   }
 };
 
-const trimMatrix = (stages, rows, columns, matrix) => {
+export const trimMatrix = (stages, rows, columns, matrix) => {
   let matrixObj = {};
   for (let i = 1; i <= parseInt(stages); i++) {
     let stageObj = {};
