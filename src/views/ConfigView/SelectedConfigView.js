@@ -123,5 +123,3 @@ export default class SelectedConfigView extends React.Component {
     );
   }
 }
-
-export default connect(mapStateToProps, viewActions)(SelectedConfigView);
