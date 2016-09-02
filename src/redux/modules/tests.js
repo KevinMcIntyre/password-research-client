@@ -37,8 +37,20 @@ export const wizardStages = {
 // ------------------------------------
 // Actions
 // ------------------------------------
+function convertUserPassImages(userPassImages) {
+  return userPassImages.map((userPassImage) => {
+    return {
+      stage: userPassImage.get('stage'),
+      row: userPassImage.get('row'),
+      column: userPassImage.get('column'),
+      alias: userPassImage.get('image')
+    }
+  })
+}
+
 export const startTrial = (subjectId, configId, stages, rows, columns, imageMaybeNotPresent, matrix, userPassImages) => {
   return dispatch => {
+    console.log(userPassImages);
     const request = {
       subjectId: parseInt(subjectId, 10),
       configId: parseInt(configId, 10),
@@ -46,8 +58,10 @@ export const startTrial = (subjectId, configId, stages, rows, columns, imageMayb
       rows: parseInt(rows, 10),
       columns: parseInt(columns, 10),
       imageMaybeNotPresent: imageMaybeNotPresent,
-      matrix: trimMatrix(stages, rows, columns, matrix)
+      matrix: trimMatrix(stages, rows, columns, matrix),
+      userPassImages: convertUserPassImages(userPassImages)
     };
+    console.log(request);
     agent
       .post('http://localhost:7000/test/settings/submit')
       .send(JSON.stringify(request))

@@ -13,7 +13,7 @@ const mapStateToProps = (state) => ({
   viewState: state.config
 });
 
-export default class SelectedConfigView extends React.Component {
+export class SelectedConfigView extends React.Component {
   constructor() {
     super();
   }
@@ -123,3 +123,5 @@ export default class SelectedConfigView extends React.Component {
     );
   }
 }
+
+export default connect(mapStateToProps, viewActions)(SelectedConfigView);
