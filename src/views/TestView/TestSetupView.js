@@ -40,7 +40,8 @@ export class TestSetupView extends React.Component {
       this.props.viewState.config.get('rows'),
       this.props.viewState.config.get('columns'),
       this.props.viewState.config.get('mayNotHaveSubjectImage'),
-      this.props.viewState.config.get('createdStages')
+      this.props.viewState.config.get('createdStages'),
+      this.props.viewState.tests.get('config').get('userImages')
     );
   }
 

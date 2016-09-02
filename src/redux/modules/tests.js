@@ -37,7 +37,7 @@ export const wizardStages = {
 // ------------------------------------
 // Actions
 // ------------------------------------
-export const startTrial = (subjectId, configId, stages, rows, columns, imageMaybeNotPresent, matrix) => {
+export const startTrial = (subjectId, configId, stages, rows, columns, imageMaybeNotPresent, matrix, userPassImages) => {
   return dispatch => {
     const request = {
       subjectId: parseInt(subjectId, 10),
@@ -47,7 +47,7 @@ export const startTrial = (subjectId, configId, stages, rows, columns, imageMayb
       columns: parseInt(columns, 10),
       imageMaybeNotPresent: imageMaybeNotPresent,
       matrix: trimMatrix(stages, rows, columns, matrix)
-    }
+    };
     agent
       .post('http://localhost:7000/test/settings/submit')
       .send(JSON.stringify(request))
