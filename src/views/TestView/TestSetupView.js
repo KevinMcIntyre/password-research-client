@@ -11,6 +11,7 @@ import ConfigBox from './ConfigBox.js';
 import ImageMatrix from '../../components/ImageMatrix/ImageMatrix';
 import Select from 'react-select';
 import classes from './TestView.scss';
+import TrialTable from './TrialTable.js';
 
 const mapStateToProps = (state) => ({
   viewState: state
@@ -29,11 +30,11 @@ export class TestSetupView extends React.Component {
     this.incrementStage = this.incrementStage.bind(this);
     this.decrementStage = this.decrementStage.bind(this);
     this.setUserImage = this.setUserImage.bind(this);
-    this.startTrial = this.startTrial.bind(this);
+    this.saveTrial = this.saveTrial.bind(this);
   }
 
-  startTrial() {
-    this.props.startTrial(
+  saveTrial() {
+    this.props.saveTrial(
       this.props.viewState.tests.get('subjectId'),
       this.props.viewState.config.get('configId'),
       this.props.viewState.config.get('stages'),
@@ -89,6 +90,9 @@ export class TestSetupView extends React.Component {
     if (this.props.viewState.tests.get('imageTestOptionList').length === 0) {
       store.dispatch(appActions.setLoadingState(true, 'Getting test configurations'));
     }
+    if (this.props.viewState.tests.get('trials').length === 0) {
+      store.dispatch(appActions.setLoadingState(true, 'Getting trials'));
+    }
   }
 
   componentDidMount() {
@@ -97,6 +101,9 @@ export class TestSetupView extends React.Component {
     }
     if (this.props.viewState.tests.get('imageTestOptionList').length === 0) {
       store.dispatch(viewActions.loadConfigs());
+    }
+    if (this.props.viewState.tests.get('trials').length === 0) {
+      store.dispatch(viewActions.getTrials());
     }
   }
 
@@ -127,8 +134,9 @@ export class TestSetupView extends React.Component {
 
   renderSubjectSelect() {
     return (
+    <div>
       <div className='container text-center'>
-        <h3>Please select a subject and authentication test below:</h3>
+        <h3>To create a new trial, please select a subject and authentication test below:</h3>
         <br/>
 
         <div className={classes.subjectSelect}>
@@ -171,6 +179,13 @@ export class TestSetupView extends React.Component {
           <Button bsSize={'large'} onClick={this.wizardNextButton}>Next</Button>
         </div>
       </div>
+      <div className='container text-center'>
+        <h3>Alternatively, you can start one of the trials below:</h3>
+        <div className={classes.trialTableWrapper}>
+          <TrialTable trials={this.props.viewState.tests.get('trials')} />
+        </div>
+      </div>
+    </div>
     );
   }
 
@@ -299,18 +314,12 @@ export class TestSetupView extends React.Component {
 
         <div className={classes.confirmationWarning}>
           <p>
-            <span className={classes.warningHeading}>WARNING: </span>Clicking 'Start Trial' will put the application
-            into testing mode.
-          </p>
-
-          <p>
-            A trial record will be created, and the application will be ready for your selected subject to begin
-            testing.
+            <span className={classes.warningHeading}>WARNING: </span>Clicking 'Create Trial' will create a trial record.
           </p>
         </div>
         <div className={classes.buttonGroup}>
           <Button className={classes.backButton} bsSize={'large'} onClick={this.wizardBackButton}>Back</Button>
-          <Button bsStyle={'success'} bsSize={'large'} onClick={this.startTrial}>Start Trial</Button>
+          <Button bsStyle={'success'} bsSize={'large'} onClick={this.startTrial}>Create Trial</Button>
         </div>
       </div>
     );

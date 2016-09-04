@@ -3,6 +3,7 @@ import { setLoadingState } from './app.js';
 import _agent from 'superagent';
 import _promise from 'bluebird';
 import _agent_promise from 'superagent-promise';
+import { push } from 'react-router-redux';
 import { trimMatrix } from './config'
 
 const agent = _agent_promise(_agent, _promise);
@@ -20,6 +21,8 @@ const SET_TEST_CONFIG = 'SET_TEST_CONFIG';
 const SET_USER_IMAGE_SELECT = 'SET_USER_IMAGE_SELECT';
 const SELECT_USER_IMAGE = 'SELECT_USER_IMAGE';
 const START_TRIAL = 'START_TRIAL';
+const SET_TRIALS = 'SET_TRIALS';
+const ADD_TRIAL = 'ADD_TRIAL';
 
 // ------------------------------------
 // Wizard Stage Constants
@@ -27,7 +30,6 @@ const START_TRIAL = 'START_TRIAL';
 const SUBJECT_SELECT = 1;
 const IMAGEPASS_SETUP = 2;
 const CONFIRMATION = 3;
-
 export const wizardStages = {
   SUBJECT_SELECT,
   IMAGEPASS_SETUP,
@@ -37,20 +39,25 @@ export const wizardStages = {
 // ------------------------------------
 // Actions
 // ------------------------------------
-function convertUserPassImages(userPassImages) {
-  return userPassImages.map((userPassImage) => {
-    return {
-      stage: userPassImage.get('stage'),
-      row: userPassImage.get('row'),
-      column: userPassImage.get('column'),
-      alias: userPassImage.get('image')
-    }
-  })
-}
-
-export const startTrial = (subjectId, configId, stages, rows, columns, imageMaybeNotPresent, matrix, userPassImages) => {
+export const addTrial = (trial) => ({type: ADD_TRIAL, trial: trial});
+export const setTrials = (trials) => ({type: SET_TRIALS, trials: trials});
+export const getTrials = () => {
   return dispatch => {
-    console.log(userPassImages);
+    agent
+    .get('http://localhost:7000/trial/list')
+    .set({
+    'Access-Control-Allow-Origin': 'localhost:7000'
+    })
+    .end()
+    .then(function (res) {
+      dispatch(setTrials(JSON.parse(res.text)));
+    }, function (err) {
+      console.log(err);
+    });
+  }
+};
+export const saveTrial = (subjectId, configId, stages, rows, columns, imageMaybeNotPresent, matrix, userPassImages, trials) => {
+  return dispatch => {
     const request = {
       subjectId: parseInt(subjectId, 10),
       configId: parseInt(configId, 10),
@@ -61,23 +68,22 @@ export const startTrial = (subjectId, configId, stages, rows, columns, imageMayb
       matrix: trimMatrix(stages, rows, columns, matrix),
       userPassImages: convertUserPassImages(userPassImages)
     };
-    console.log(request);
     agent
-      .post('http://localhost:7000/test/settings/submit')
-      .send(JSON.stringify(request))
-      .set({
-      'Access-Control-Allow-Origin': 'localhost:7000'
-      })
-      .end()
-      .then(function (res) {
-        console.log(res);
-        dispatch(resetTestSetup());
-      }, function (err) {
-        console.log(err);
-      });
+    .post('http://localhost:7000/test/settings/submit')
+    .send(JSON.stringify(request))
+    .set({
+    'Access-Control-Allow-Origin': 'localhost:7000'
+    })
+    .end()
+    .then(function (res) {
+      dispatch(addTrial((JSON.parse(res.text))));
+    }, function (err) {
+      console.log(err);
+    }).then(function() {
+      dispatch(resetTestSetup());
+    });
   }
 };
-
 export const selectUserImage = (index, alias) => ({type: SELECT_USER_IMAGE, index: index, alias: alias});
 export const setUserImageSelect = (userImageIndex) =>({type: SET_USER_IMAGE_SELECT, userImageIndex: userImageIndex});
 export const setSubject = (subjectId, subjectName, subjectImages) => ({type: SET_SUBJECT, subjectId: subjectId, subjectName: subjectName, subjectImages: subjectImages});
@@ -96,7 +102,6 @@ export const setConfig = (id, name, rows, columns, stages, imageMayNotBePresent,
   imageMayNotBePresent: imageMayNotBePresent,
   userImages: userImages
 });
-
 export const selectSubject = (subjectId, subjectName) => {
   return dispatch => {
     if (!subjectId) {
@@ -115,7 +120,6 @@ export const selectSubject = (subjectId, subjectName) => {
     }
   }
 };
-
 export const loadConfigSettings = (configId) => {
   return dispatch => {
     if (configId === undefined) {
@@ -144,7 +148,6 @@ export const loadConfigSettings = (configId) => {
     }
   };
 };
-
 export const loadConfigs = () => {
   return dispatch => {
     return agent
@@ -174,7 +177,8 @@ export const actions = {
   selectSubject,
   setUserImageSelect,
   selectUserImage,
-  startTrial
+  saveTrial,
+  getTrials
 };
 
 // ------------------------------------
@@ -193,6 +197,7 @@ const testViewState = Immutable.Map({
   imageTestOption: undefined,
   imageTestOptionList: [],
   selectingImageId: undefined,
+  trials: [],
   config: Immutable.Map({
     name: undefined,
     rows: undefined,
@@ -207,6 +212,14 @@ const testViewState = Immutable.Map({
 // ------------------------------------
 export default function testViewReducer(state = testViewState, action = null) {
   switch (action.type) {
+    case ADD_TRIAL: {
+      let trials = state.get('trials');
+      trials.push(action.trial);
+      return state.set('trials', trials);
+    }
+    case SET_TRIALS: {
+      return state.set('trials', action.trials);
+    }
     case SELECT_USER_IMAGE: {
       const config = state.get('config');
       let updatedImages =config.get('userImages').map(function(userImage){
@@ -382,10 +395,24 @@ export default function testViewReducer(state = testViewState, action = null) {
       return state.set('wizardStage', (state.get('wizardStage') - 1));
     }
     case RESET_TEST_SETUP: {
-      return testViewState;
+      return testViewState.set('trials', state.get('trials')).set('imageTestOptionList', state.get('imageTestOptionList'));
     }
     default: {
       return state;
     }
   }
+}
+
+// ------------------------------------
+// Utility Functions
+// ------------------------------------
+function convertUserPassImages(userPassImages) {
+  return userPassImages.map((userPassImage) => {
+    return {
+      stage: userPassImage.get('stage'),
+      row: userPassImage.get('row'),
+      column: userPassImage.get('column'),
+      alias: userPassImage.get('image')
+    }
+  })
 }
