@@ -218,7 +218,10 @@ export default function testViewReducer(state = testViewState, action = null) {
       return state.set('trials', trials);
     }
     case SET_TRIALS: {
-      return state.set('trials', action.trials);
+      if (Array.isArray(action.trials)) {
+              return state.set('trials', action.trials);
+      }
+      return state;
     }
     case SELECT_USER_IMAGE: {
       const config = state.get('config');

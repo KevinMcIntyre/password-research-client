@@ -1,4 +1,4 @@
-import React, { PropTypes } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import TopNav from './TopNav.js';
 import Spinner from 'react-spinkit';
@@ -9,10 +9,6 @@ const mapStateToProps = (state) => ({
 });
 
 export class CoreLayout extends React.Component {
-  static propTypes = {
-    children: PropTypes.element
-  };
-
   constructor() {
     super();
   }
@@ -31,7 +27,7 @@ export class CoreLayout extends React.Component {
     return (
       <div className='page-container'>
         <div className='view-container'>
-          <TopNav />
+          <TopNav isTesting={this.props.viewState.get('isTesting')} />
           {this.props.viewState.get('loading') ? loading : <span></span>}
           <div className={this.props.viewState.get('loading') ? 'loading-children' : ''}>
             { this.props.children }

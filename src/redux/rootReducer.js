@@ -6,6 +6,7 @@ import subjects from './modules/subjects';
 import tests from './modules/tests';
 import images from './modules/images';
 import config from './modules/config';
+import trials from './modules/trials';
 
 export default combineReducers({
   counter,
@@ -14,5 +15,6 @@ export default combineReducers({
   subjects,
   tests,
   images,
-  config
+  config,
+  trials
 });

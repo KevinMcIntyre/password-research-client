@@ -21,27 +21,31 @@ import ConfigView from 'views/ConfigView/ConfigView';
 import ConfigSelect from 'views/ConfigView/ConfigSelect';
 import SelectedConfigView from 'views/ConfigView/SelectedConfigView';
 import NotFoundView from 'views/NotFoundView/NotFoundView';
+import TrialView from 'views/TrialView/TrialView';
 
 export default (
-  <Route path='/' component={CoreLayout}>
-    <IndexRoute component={HomeView} />
-    <Route path='test' component={TestSetupView} />
-    <Route path='collections' component={CollectionView}>
-      <IndexRoute component={CollectionSelectView}/>
-      <Route path='new' component={NewCollectionView} />
-      <Route path=':collectionId' component={CollectionUploadView} />
+  <div>
+    <Route path='/' component={CoreLayout}>
+      <IndexRoute component={HomeView} />
+      <Route path='test' component={TestSetupView} />
+      <Route path='collections' component={CollectionView}>
+        <IndexRoute component={CollectionSelectView}/>
+        <Route path='new' component={NewCollectionView} />
+        <Route path=':collectionId' component={CollectionUploadView} />
+      </Route>
+      <Route path='subjects' component={SubjectView}>
+        <IndexRoute component={SubjectSelectView}/>
+        <Route path='new' component={NewSubjectView} />
+        <Route path=':subjectId' component={SubjectProfileView} />
+      </Route>
+      <Route path='configurations'>
+        <IndexRoute component={ConfigSelect} />
+        <Route path='new' component={ConfigView} />
+        <Route path=':configId' component={SelectedConfigView} />
+      </Route>
+      <Route path='testing' component={TrialView} />
+      <Route path='/404' component={NotFoundView} />
+      <Redirect from='*' to='/404' />
     </Route>
-    <Route path='subjects' component={SubjectView}>
-      <IndexRoute component={SubjectSelectView}/>
-      <Route path='new' component={NewSubjectView} />
-      <Route path=':subjectId' component={SubjectProfileView} />
-    </Route>
-    <Route path='configurations'>
-      <IndexRoute component={ConfigSelect} />
-      <Route path='new' component={ConfigView} />
-      <Route path=':configId' component={SelectedConfigView} />
-    </Route>
-    <Route path='/404' component={NotFoundView} />
-    <Redirect from='*' to='/404' />
-  </Route>
+  </div>
 );

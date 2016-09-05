@@ -38,7 +38,7 @@ export default class TopNav extends React.Component {
           </Navbar.Brand>
           <Navbar.Toggle />
         </Navbar.Header>
-        {navItems}
+        { this.props.isTesting ? '' : navItems }
       </Navbar>
     );
   }

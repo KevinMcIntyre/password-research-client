@@ -7,34 +7,38 @@ import { startTrial } from '../../redux/modules/trials';
 import classes from './TestView.scss';
 import { store } from '../../main';
 
-const DateCell = ({rowIndex, data, col, ...props}) => (
-  <Cell {...props}>
-    {Moment.utc(data[rowIndex][col]).format('MM/DD/YYYY')}
-  </Cell>
-);
-
-const StartTrialButtonCell = ({rowIndex, data, col, ...props}) => (
-  <div className={classes.runTestButtonCell}>
-    <Button bsStyle='success' bsSize='xsmall' onClick={store.dispatch.bind(undefined, startTrial.bind(undefined, data[rowIndex]['id']))}>Start Trial</Button>
-  </div>
-);
-
-const TextCell = ({rowIndex, data, col, ...props}) => (
-  <Cell {...props}>
-    {data[rowIndex][col] != null ? data[rowIndex][col] : "N/A"}
-  </Cell>
-);
-
 export default class TrialTable extends React.Component {
   constructor() {
     super();
+    this.startTrial = this.startTrial.bind(this);
+  }
+
+  startTrial(trialId) {
+    store.dispatch(startTrial(trialId));
   }
 
   render() {
+    const DateCell = ({rowIndex, data, col, ...props}) => (
+      <Cell {...props}>
+        {Moment.utc(data[rowIndex][col]).format('MM/DD/YYYY')}
+      </Cell>
+    );
+
+    const StartTrialButtonCell = ({rowIndex, data, col, ...props}) => (
+      <div className={classes.runTestButtonCell}>
+        <Button bsStyle='success' bsSize='xsmall' onClick={this.startTrial.bind(undefined, data[rowIndex]['id'])}>Start Trial</Button>
+      </div>
+    );
+
+    const TextCell = ({rowIndex, data, col, ...props}) => (
+      <Cell {...props}>
+        {data[rowIndex][col] != null ? data[rowIndex][col] : "N/A"}
+      </Cell>
+    );
     return (
         <Table
           maxHeight={300}
-          rowsCount={this.props.trials.length}
+          rowsCount={this.props.trials ? this.props.trials.length : 0}
           rowHeight={50}
           width={1000}
           height={300}
