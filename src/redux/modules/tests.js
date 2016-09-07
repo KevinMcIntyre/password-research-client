@@ -40,7 +40,7 @@ export const wizardStages = {
 // Actions
 // ------------------------------------
 export const addTrial = (trial) => ({type: ADD_TRIAL, trial: trial});
-export const setTrials = (trials) => ({type: SET_TRIALS, trials: trials});
+export const setTrials = (trials) => ({type: SET_TRIALS, trials: trials ? trials : []});
 export const getTrials = () => {
   return dispatch => {
     agent
@@ -53,6 +53,8 @@ export const getTrials = () => {
       dispatch(setTrials(JSON.parse(res.text)));
     }, function (err) {
       console.log(err);
+    }).then(function() {
+      dispatch(setLoadingState(false));
     });
   }
 };

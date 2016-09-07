@@ -90,7 +90,7 @@ export class TestSetupView extends React.Component {
     if (this.props.viewState.tests.get('imageTestOptionList').length === 0) {
       store.dispatch(appActions.setLoadingState(true, 'Getting test configurations'));
     }
-    if (!this.props.viewState.tests.get('trials') || this.props.viewState.tests.get('trials').length === 0) {
+    if (this.props.viewState.tests.get('trials').length === 0) {
       store.dispatch(appActions.setLoadingState(true, 'Getting trials'));
     }
   }
@@ -102,7 +102,7 @@ export class TestSetupView extends React.Component {
     if (this.props.viewState.tests.get('imageTestOptionList').length === 0) {
       store.dispatch(viewActions.loadConfigs());
     }
-    if (!this.props.viewState.tests.get('trials') || this.props.viewState.tests.get('trials').length === 0) {
+    if (this.props.viewState.tests.get('trials').length === 0) {
       store.dispatch(viewActions.getTrials());
     }
   }
