@@ -11,10 +11,12 @@ const agent = _agent_promise(_agent, _promise);
 // ------------------------------------
 const SET_TRIAL = 'SET_TRIAL';
 const RESET_TRIAL = 'RESET_TRIAL';
+const BEGIN_TRIAL = 'BEGIN_TRIAL';
 
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const beginTrial = () => ({type: BEGIN_TRIAL});
 export const setTrial = (trialData) => ({type: SET_TRIAL, trialData: trialData});
 export const startTrial = (trialId) => {
   return dispatch => {
@@ -31,7 +33,6 @@ export const startTrial = (trialId) => {
     })
     .end()
     .then(function (res) {
-      console.log(res);
       dispatch(setTrial((JSON.parse(res.text))));
     }, function (err) {
       console.log(err);
@@ -47,16 +48,47 @@ export const endTrial = () => {
     dispatch(resetTrial());
     dispatch(setTestingStatus(false))
   }
-}
+};
+export const redirectToTestSetup = () => {
+  return dispatch => {
+    dispatch(push('/test'));
+  }
+};
 
 export const actions = {
-  endTrial
+  beginTrial,
+  endTrial,
+  redirectToTestSetup
+};
+
+
+// ------------------------------------
+// Wizard Stage Constants
+// ------------------------------------
+const INTRO = 1;
+const AUTHENTICATION = 2;
+const OUTRO = 3;
+
+export const wizardStages = {
+  INTRO,
+  AUTHENTICATION,
+  OUTRO
 };
 
 // ------------------------------------
 // State
 // ------------------------------------
-const trialState = Immutable.Map({});
+const trialState = Immutable.Map({
+  trialId: undefined,
+  subjectName: undefined,
+  stages: undefined,
+  rows: undefined,
+  columns: undefined,
+  imageMayNotBePresent: undefined,
+  matrix: undefined,
+  authStage: 1,
+  wizardStage: INTRO
+});
 
 // ------------------------------------
 // Reducer
@@ -64,7 +96,17 @@ const trialState = Immutable.Map({});
 export default function trialReducer(state = trialState, action = null) {
   switch (action.type) {
     case SET_TRIAL: {
-      return state;
+      return state
+        .set('trialId', action.trialData.id)
+        .set('subjectName', action.trialData.subjectName)
+        .set('stages', action.trialData.stages)
+        .set('rows', action.trialData.rows)
+        .set('columns', action.trialData.columns)
+        .set('imageMayNotBePresent', action.trialData.imageMayNotBePresent)
+        .set('matrix', Immutable.fromJS(action.trialData.matrix));
+    }
+    case BEGIN_TRIAL: {
+      return state.set('wizardStage', AUTHENTICATION);
     }
     case RESET_TRIAL: {
       return trialState;
