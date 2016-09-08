@@ -12,12 +12,12 @@ export default class ImageAuthView extends React.Component {
           <ImageMatrix rows={this.props.rows}
                        columns={this.props.columns}
                        noneEnabled={this.props.imageMayNotBePresent}
-                       matrix={this.props.matrix}
+                       matrix={this.props.matrix.get(this.props.currentStage.toString())}
                        currentStage={this.props.currentStage}
                        totalStages={this.props.stages}
                        onImageClick={this.props.selectImage}
                        onButtonClick={this.props.selectImage.bind(null, 'no-pass-image')}
-                       random={false}
+                       testing={true}
             />
         </div>
       </div>
