@@ -10,7 +10,7 @@ export default class ImageMatrix extends React.Component {
 
   shouldComponentUpdate(nextProps) {
     if (this.props.matrix) {
-      return (this.props.matrix != nextProps.matrix || this.props.matrix.get("1").get("1") !== nextProps.matrix.get("1").get("1"));
+      return ((this.props.matrix != nextProps.matrix || this.props.matrix.get("1").get("1") !== nextProps.matrix.get("1").get("1")) || (this.props.currentStage !== nextProps.currentStage));
     } else {
       return true;
     }
@@ -47,7 +47,7 @@ export default class ImageMatrix extends React.Component {
     if (this.props.noneEnabled) {
       matrix.push(
         <div key={(i + 1)}>
-          <Button bsSize={"large"} bsStyle={"primary"} className={classes.imageNone}>None of my pass-images are
+          <Button bsSize={"large"} bsStyle={"primary"} className={classes.imageNone} onClick={this.props.onButtonClick} >None of my pass-images are
             displayed here</Button>
         </div>
       );

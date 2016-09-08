@@ -12,10 +12,18 @@ const agent = _agent_promise(_agent, _promise);
 const SET_TRIAL = 'SET_TRIAL';
 const RESET_TRIAL = 'RESET_TRIAL';
 const BEGIN_TRIAL = 'BEGIN_TRIAL';
+const INCREMENT_AUTH = 'INCREMENT_AUTH';
 
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const incrementAuth = () => ({type: INCREMENT_AUTH});
+export const selectPassImage = (imageId) => {
+  return dispatch => {
+    console.log('selected id: ' + imageId);
+    dispatch(incrementAuth());
+  }
+};
 export const beginTrial = () => ({type: BEGIN_TRIAL});
 export const setTrial = (trialData) => ({type: SET_TRIAL, trialData: trialData});
 export const startTrial = (trialId) => {
@@ -56,6 +64,7 @@ export const redirectToTestSetup = () => {
 };
 
 export const actions = {
+  selectPassImage,
   beginTrial,
   endTrial,
   redirectToTestSetup
@@ -95,6 +104,15 @@ const trialState = Immutable.Map({
 // ------------------------------------
 export default function trialReducer(state = trialState, action = null) {
   switch (action.type) {
+    case INCREMENT_AUTH: {
+      const currentStage = state.get('authStage');
+
+      if (currentStage === state.get('stages')) {
+        return state.set('wizardStage', OUTRO);
+      }
+
+      return state.set('authStage', currentStage + 1);
+    }
     case SET_TRIAL: {
       return state
         .set('trialId', action.trialData.id)

@@ -25,7 +25,16 @@ export class TrialView extends React.Component {
 
         switch(this.props.viewState.get('wizardStage')) {
           case wizardStages.AUTHENTICATION: {
-            currentView = <ImageAuthView />;
+            currentView = <ImageAuthView subjectName={this.props.viewState.get('subjectName')}
+                                         row={this.props.viewState.get('rows')}
+                                         columns={this.props.viewState.get('columns')}
+                                         imageMayNotBePresent={this.props.viewState.get('imageMayNotBePresent')}
+                                         matrix={this.props.viewState.get('matrix')}
+                                         currentStage={this.props.viewState.get('authStage')}
+                                         stages={this.props.viewState.get('stages')}
+                                         selectImage={this.props.selectPassImage}
+
+              />;
             break;
           }
           case wizardStages.OUTRO: {
