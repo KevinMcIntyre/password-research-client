@@ -18,10 +18,27 @@ const INCREMENT_AUTH = 'INCREMENT_AUTH';
 // Actions
 // ------------------------------------
 export const incrementAuth = () => ({type: INCREMENT_AUTH});
-export const selectPassImage = (imageId) => {
+export const selectPassImage = (trialId, stage, imageId) => {
   return dispatch => {
-    console.log('selected id: ' + imageId);
+    console.log(trialId, stage, imageId);
     dispatch(incrementAuth());
+    return agent
+    .post('http://localhost:7000/trial/submit')
+    .send(JSON.stringify({
+      trialId: trialId,
+      stage: stage,
+      imageAlias: imageId,
+      unixTimestamp: new Date().getTime().toString()
+    }))
+    .set({
+      'Access-Control-Allow-Origin': 'localhost:7000'
+    })
+    .end()
+    .then(function (res) {
+      dispatch(setTrial((JSON.parse(res.text))));
+    }, function (err) {
+      console.log(err);
+    })
   }
 };
 export const beginTrial = () => ({type: BEGIN_TRIAL});

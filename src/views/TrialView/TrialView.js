@@ -32,7 +32,13 @@ export class TrialView extends React.Component {
                                          matrix={this.props.viewState.get('matrix')}
                                          currentStage={this.props.viewState.get('authStage')}
                                          stages={this.props.viewState.get('stages')}
-                                         selectImage={this.props.selectPassImage}
+                                         selectImage={(imageId) => {
+                                           this.props.selectPassImage(
+                                             this.props.viewState.get('trialId'),
+                                             this.props.viewState.get('authStage'),
+                                             imageId
+                                          );
+                                         }}
 
               />;
             break;
