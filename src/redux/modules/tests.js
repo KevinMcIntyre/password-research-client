@@ -23,6 +23,7 @@ const SELECT_USER_IMAGE = 'SELECT_USER_IMAGE';
 const START_TRIAL = 'START_TRIAL';
 const SET_TRIALS = 'SET_TRIALS';
 const ADD_TRIAL = 'ADD_TRIAL';
+const POP_TRIAL = 'POP_TRIAL';
 
 // ------------------------------------
 // Wizard Stage Constants
@@ -168,6 +169,8 @@ export const loadConfigs = () => {
   };
 };
 
+export const popTrial = (trialId) => ({type: POP_TRIAL, trialId: trialId});
+
 export const actions = {
   setSubject,
   setTest,
@@ -214,6 +217,12 @@ const testViewState = Immutable.Map({
 // ------------------------------------
 export default function testViewReducer(state = testViewState, action = null) {
   switch (action.type) {
+    case POP_TRIAL: {
+      let trials = state.get('trials').filter((trial) => {
+        return trial.id != action.trialId
+      });
+      return state.set('trials', trials);
+    }
     case ADD_TRIAL: {
       let trials = state.get('trials');
       trials.push(action.trial);

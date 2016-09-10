@@ -28,7 +28,7 @@ export class CoreLayout extends React.Component {
       <div className='page-container'>
         <div className='view-container'>
           <TopNav isTesting={this.props.viewState.get('isTesting')} />
-          {this.props.viewState.get('loading') ? loading : <span></span>}
+          {this.props.viewState.get('loading') ? loading : ''}
           <div className={this.props.viewState.get('loading') ? 'loading-children' : ''}>
             { this.props.children }
           </div>

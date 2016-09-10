@@ -1,8 +1,12 @@
 .intro {
   margin-top: 50px;
-  text-align: justify;
+  text-align: left;
   width: 600px;
   display: inline-block;
+}
+
+.intro > h1 {
+  font-size: 42px;
 }
 
 .matrixImg {

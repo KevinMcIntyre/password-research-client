@@ -4,6 +4,7 @@ import _promise from 'bluebird';
 import _agent_promise from 'superagent-promise';
 import { push } from 'react-router-redux';
 import { setLoadingState, setTestingStatus } from './app';
+import { popTrial } from './tests';
 
 const agent = _agent_promise(_agent, _promise);
 // ------------------------------------
@@ -11,16 +12,17 @@ const agent = _agent_promise(_agent, _promise);
 // ------------------------------------
 const SET_TRIAL = 'SET_TRIAL';
 const RESET_TRIAL = 'RESET_TRIAL';
-const BEGIN_TRIAL = 'BEGIN_TRIAL';
+const SET_WIZARD_STAGE = 'SET_WIZARD_STAGE';
 const INCREMENT_AUTH = 'INCREMENT_AUTH';
+const SET_AUTH_STATUS = 'SET_AUTH_STATUS';
 
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const setAuthStatus = (success) => ({type: SET_AUTH_STATUS, success: success});
 export const incrementAuth = () => ({type: INCREMENT_AUTH});
 export const selectPassImage = (trialId, stage, imageId) => {
   return dispatch => {
-    console.log(trialId, stage, imageId);
     dispatch(incrementAuth());
     return agent
     .post('http://localhost:7000/trial/submit')
@@ -35,13 +37,16 @@ export const selectPassImage = (trialId, stage, imageId) => {
     })
     .end()
     .then(function (res) {
-      dispatch(setTrial((JSON.parse(res.text))));
+        const resJson = JSON.parse(res.text);
+        if (resJson.trialComplete) {
+          dispatch(endTrial(resJson.successfulAuth))
+        }
     }, function (err) {
       console.log(err);
     })
   }
 };
-export const beginTrial = () => ({type: BEGIN_TRIAL});
+export const setWizardStage = (stage) => ({type: SET_WIZARD_STAGE, stage: stage});
 export const setTrial = (trialData) => ({type: SET_TRIAL, trialData: trialData});
 export const startTrial = (trialId) => {
   return dispatch => {
@@ -67,9 +72,16 @@ export const startTrial = (trialId) => {
     })
   }
 };
-export const resetTrial = () => ({type: RESET_TRIAL});
-export const endTrial = () => {
+export const endTrial = (successfulAuth) => {
   return dispatch => {
+    dispatch(setAuthStatus(successfulAuth));
+    dispatch(setWizardStage(wizardStages.OUTRO));
+  }
+};
+export const resetTrial = () => ({type: RESET_TRIAL});
+export const stopTrial = (trialId) => {
+  return dispatch => {
+    dispatch(popTrial(trialId));
     dispatch(resetTrial());
     dispatch(setTestingStatus(false))
   }
@@ -82,8 +94,9 @@ export const redirectToTestSetup = () => {
 
 export const actions = {
   selectPassImage,
-  beginTrial,
+  setWizardStage,
   endTrial,
+  stopTrial,
   redirectToTestSetup
 };
 
@@ -113,7 +126,8 @@ const trialState = Immutable.Map({
   imageMayNotBePresent: undefined,
   matrix: undefined,
   authStage: 1,
-  wizardStage: INTRO
+  wizardStage: INTRO,
+  successfulAuth: undefined
 });
 
 // ------------------------------------
@@ -121,11 +135,14 @@ const trialState = Immutable.Map({
 // ------------------------------------
 export default function trialReducer(state = trialState, action = null) {
   switch (action.type) {
+    case SET_AUTH_STATUS: {
+      return state.set('successfulAuth', action.success);
+    }
     case INCREMENT_AUTH: {
       const currentStage = state.get('authStage');
 
       if (currentStage === state.get('stages')) {
-        return state.set('wizardStage', OUTRO);
+        return state;
       }
 
       return state.set('authStage', currentStage + 1);
@@ -140,8 +157,8 @@ export default function trialReducer(state = trialState, action = null) {
         .set('imageMayNotBePresent', action.trialData.imageMayNotBePresent)
         .set('matrix', Immutable.fromJS(action.trialData.matrix));
     }
-    case BEGIN_TRIAL: {
-      return state.set('wizardStage', AUTHENTICATION);
+    case SET_WIZARD_STAGE: {
+      return state.set('wizardStage', action.stage);
     }
     case RESET_TRIAL: {
       return trialState;

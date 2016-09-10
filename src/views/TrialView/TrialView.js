@@ -18,7 +18,7 @@ export class TrialView extends React.Component {
       }
     }
     componentWillUnmount() {
-        this.props.endTrial();
+        this.props.stopTrial(this.props.viewState.get('trialId'));
     }
     render() {
         let currentView;
@@ -44,7 +44,13 @@ export class TrialView extends React.Component {
             break;
           }
           case wizardStages.OUTRO: {
-            currentView = <OutroView subjectName={this.props.viewState.get('subjectName')} />;
+            currentView = <OutroView subjectName={this.props.viewState.get('subjectName')}
+                                     successfulAuth={this.props.viewState.get('successfulAuth')}
+                                     exit={()=>{
+                                      this.props.redirectToTestSetup();
+                                      this.props.stopTrial(this.props.viewState.get('trialId'));
+                                     }}
+                          />;
             break;
           }
           default: {
@@ -52,7 +58,7 @@ export class TrialView extends React.Component {
               <IntroView subjectName={this.props.viewState.get('subjectName')}
                        imageMayNotBePresent={this.props.viewState.get('imageMayNotBePresent')}
                        stages={this.props.viewState.get('stages')}
-                       beginTrial={this.props.beginTrial}
+                       beginTrial={this.props.setWizardStage.bind(null, wizardStages.AUTHENTICATION)}
               />;
             break;
           }
