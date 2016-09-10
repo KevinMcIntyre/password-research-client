@@ -26,7 +26,7 @@ export default class ImageMatrix extends React.Component {
           if (img === 'user-img') {
             imageRow.push(<PassImage key={i.toString() + j.toString()}
                                      img={`http://localhost:7000/assets/img/participant-image.jpeg`} alias={'user-img'}
-                                     isTesting={true} onImageClick={this.props.onImageClick}/>);
+                                     isTesting={true} onImageClick={this.props.onImageClick.bind(null, 'user-img', i, j)}/>);
           } else if (this.props.random) {
             imageRow.push(<PassImage key={img} img={`http://localhost:7000/random/image/${img}`} alias={img}
                                      isTesting={true} onImageClick={this.props.onImageClick}/>);

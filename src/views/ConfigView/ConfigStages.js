@@ -4,6 +4,7 @@ import { actions as appActions } from '../../redux/modules/app.js';
 import { store } from '../../main.js';
 import ChangeImageModal from './ChangeImageModal.js';
 import classes from '../SubjectView/SubjectView.scss';
+import configClasses from './ConfigView.scss';
 import ImageMatrix from '../../components/ImageMatrix/ImageMatrix.js';
 
 export default class ConfigStages extends React.Component {
@@ -33,9 +34,10 @@ export default class ConfigStages extends React.Component {
           <p>
             These stages were generated randomly and include no subject pass-images.<br/>
             To replace an image in the stage, click on it for options.<br/>
-            For your convenience in placing a user's pass-image randomly,
-            two suggested positions have been highlighted randomly in the image matrix.
           </p>
+          {this.props.viewState.get('assignUserImgError') ? 
+            <p className={configClasses.passImgErrorMsg}>A users pass-image must be assigned within the matrix.</p> : ''
+          }
         </div>
         <div>
           <ImageMatrix rows={parseInt(this.props.viewState.get('rows'), 10)}
@@ -48,6 +50,7 @@ export default class ConfigStages extends React.Component {
                        random={true}
             />
         </div>
+        
         <div className={classes.buttonGroup}>
           <Button className={classes.backButton} bsSize={'large'} onClick={this.props.decrementWizard}>Back</Button>
           <Button bsSize={'large'} onClick={this.props.incrementWizard}>Next</Button>

@@ -10,8 +10,8 @@ const agent = _agent_promise(_agent, _promise);
 // ------------------------------------
 // Constants
 // ------------------------------------
-const INCREMENT_WIZARD = 'INCREMENT_CONFIG_WIZARD';
-const DECREMENT_WIZARD = 'DECREMENT_CONFIG_WIZARD';
+const INCREMENT_WIZARD = 'INCREMENT_WIZARD';
+const DECREMENT_WIZARD = 'DECREMENT_WIZARD';
 const TOGGLE_MAY_NOT_HAVE_IMAGE = 'TOGGLE_MAY_NOT_HAVE_IMAGE';
 const SET_CONFIG = 'SET_CONFIG';
 const CLEAR_FORM = 'CLEAR_FORM';
@@ -27,8 +27,6 @@ const SET_CONFIG_ID = 'SET_CONFIG_ID';
 const SAVE_CONFIG = 'SAVE_CONFIG';
 const SET_CONFIGS = 'SET_CONFIGS';
 const SELECT_CONFIG = 'SELECT_CONFIG';
-const INCREMENT_STAGE = 'INCREMENT_STAGE';
-const DECREMENT_STAGE = 'DECREMENT_STAGE';
 const SET_SPECIFIC_MATRIX_IMAGE = 'SET_SPECIFIC_MATRIX_IMAGE';
 
 // ------------------------------------
@@ -172,6 +170,7 @@ export const confirmImageReplacement = (configId, selectedAlias, replacementAlia
     }).end()
       .then(function (res) {
         let json = JSON.parse(res.text);
+        console.log(json);
         dispatch(updateImageMatrix(json.Stage, json.Row, json.Column, json.Alias));
         dispatch(toggleChangeImageModal(undefined));
       }, function (err) {
@@ -206,7 +205,7 @@ export const changeReplacementType = (replacementType, configId, replacingAlias)
     dispatch(setReplacementType(replacementType));
   }
 };
-export const toggleChangeImageModal = (imageAlias) => ({type: TOGGLE_CHANGE_IMAGE_MODAL, imageAlias: imageAlias});
+export const toggleChangeImageModal = (imageAlias, row, column) => ({type: TOGGLE_CHANGE_IMAGE_MODAL, imageAlias: imageAlias, row: row, column: column});
 export const incrementWizard = () => ({type: INCREMENT_WIZARD});
 export const decrementWizard = () => ({type: DECREMENT_WIZARD});
 export const toggleMayNotHaveImage = (mayNotHaveImage) => ({type: TOGGLE_MAY_NOT_HAVE_IMAGE, mayNotHaveImage: mayNotHaveImage});
@@ -281,7 +280,8 @@ const configViewState = Immutable.Map({
   selectedAlias: undefined,
   replacementType: undefined,
   replacementAlias: undefined,
-  randomAlias: undefined
+  randomAlias: undefined,
+  assignUserImgError: false
 });
 // ------------------------------------
 // Reducer
@@ -295,21 +295,6 @@ export default function configViewReducer(state = configViewState, action = null
       row = row.set(action.column.toString(), action.alias);
       stage = stage.set(action.row.toString(), row);
       return state.set('createdStages', matrix.set(action.stage.toString(), stage));
-    }
-    case INCREMENT_STAGE: {
-      const currentStage = state.get('currentStageBeingSet');
-      const numberOfStages = state.get('stages');
-      if (currentStage < numberOfStages) {
-        return state.set('currentStageBeingSet', currentStage + 1);
-      }
-      return
-    }
-    case DECREMENT_STAGE: {
-      const currentStage = state.get('currentStageBeingSet');
-      if (currentStage > 1) {
-        return state.set('currentStageBeingSet', currentStage - 1);
-      }
-      return
     }
     case SET_CONFIGS: {
       let configList = [];
@@ -327,8 +312,14 @@ export default function configViewReducer(state = configViewState, action = null
     case UPDATE_IMAGE_MATRIX:
     {
       const matrix = state.get('createdStages');
+      console.log(matrix);
+      console.log(action.stage);
       const stage = matrix.get(action.stage);
+      console.log(stage);
       const row = stage.get(action.row);
+      if (action.alias === 'user-img') {
+        state = state.set('assignUserImgError', false)
+      }
       return state.set('createdStages', matrix.set(action.stage, stage.set(action.row, row.set(action.column, action.alias))));
     }
     case SET_RANDOM_IMAGE:
@@ -348,8 +339,13 @@ export default function configViewReducer(state = configViewState, action = null
     }
     case TOGGLE_CHANGE_IMAGE_MODAL:
     {
+      console.log(action);
       if (typeof(action.imageAlias) === 'string') {
         state = state.set('selectedAlias', action.imageAlias);
+      }
+      if (typeof(action.row) === 'number' && typeof(action.row) === 'number') {
+        // TODO
+        console.log('you need to store the row and column of this to be used when replacing because there could be more than one "user-img" in the table...');
       }
       if (state.get('showChangeImageModal')) {
         state = state.set('replacementType', undefined).set('replacementAlias', undefined);
@@ -358,6 +354,9 @@ export default function configViewReducer(state = configViewState, action = null
     }
     case TOGGLE_MAY_NOT_HAVE_IMAGE:
     {
+        if (action.mayNotHaveImage) {
+          state = state.set('assignUserImgError', false)
+        }
         return state.set('mayNotHaveSubjectImage', action.mayNotHaveImage);
     }
     case SET_CONFIG:
@@ -392,9 +391,15 @@ export default function configViewReducer(state = configViewState, action = null
       let currentState = state.get('wizardStage');
       if (currentState === STAGE_SETUP) {
         if (state.get('currentStageBeingSet') === parseInt(state.get('stages'), 10)) {
-          return state.set('wizardStage', (state.get('wizardStage') + 1));
+          if (matrixIsValid(state)) {
+            return state.set('wizardStage', (state.get('wizardStage') + 1)).set('assignUserImgError', false);
+          }
+          return state.set('assignUserImgError', true);
         } else {
-          return state.set('currentStageBeingSet', (state.get('currentStageBeingSet') + 1));
+          if (matrixIsValid(state)) {
+            return state.set('currentStageBeingSet', (state.get('currentStageBeingSet') + 1)).set('assignUserImgError', false);
+          }
+          return state.set('assignUserImgError', true);
         }
       }
       if (currentState === CONFIRMATION) {
@@ -428,4 +433,24 @@ export default function configViewReducer(state = configViewState, action = null
       return state;
     }
   }
+}
+
+function matrixIsValid(state) {
+  if (!state.get('mayNotHaveSubjectImage')) {
+    const currentStageMatrix = state.get('createdStages').get(state.get('currentStageBeingSet').toString());
+    const rows = parseInt(state.get('rows'), 10);
+    const columns = parseInt(state.get('columns'), 10);
+    let userPassImageFound = false;
+    for (let i = 1; i <= rows; i++) {
+      let row = currentStageMatrix.get(i.toString());
+      for (let j = 1; j <= columns; j++) {
+        let columnValue = row.get(j.toString());
+        if (columnValue === 'user-img') {
+          userPassImageFound = true;
+        }
+      }
+    }
+    return userPassImageFound;
+  }
+  return true;
 }
