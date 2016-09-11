@@ -28,6 +28,8 @@ const SAVE_CONFIG = 'SAVE_CONFIG';
 const SET_CONFIGS = 'SET_CONFIGS';
 const SELECT_CONFIG = 'SELECT_CONFIG';
 const SET_SPECIFIC_MATRIX_IMAGE = 'SET_SPECIFIC_MATRIX_IMAGE';
+const INCREMENT_STAGE = 'INCREMENT_STAGE';
+const DECREMENT_STAGE = 'DECREMENT_STAGE';
 
 // ------------------------------------
 // Wizard Stage Constants
@@ -157,11 +159,19 @@ const updateImageMatrix = (stage, row, column, alias) => ({
   column: column.toString(),
   alias: alias
 });
-export const confirmImageReplacement = (configId, selectedAlias, replacementAlias, replacementType, collectionId) => {
+export const confirmImageReplacement = (configId, selectedAlias, selectedStage, selectedRow, selectedColumn, replacementAlias, replacementType, collectionId) => {
+  if (selectedAlias === 'user-img' && replacementAlias === 'user-img') {
+    return dispatch => {
+      dispatch(toggleChangeImageModal(undefined));
+    };
+  }
   return dispatch => {
     let req = agent.post('http://localhost:7000/image/replace')
       .field('configId', configId)
       .field('selectedAlias', selectedAlias)
+      .field('selectedStage', selectedStage)
+      .field('selectedRow', selectedRow)
+      .field('selectedColumn', selectedColumn)
       .field('replacementAlias', replacementAlias)
       .field('replacementType', replacementType)
       .field('collectionId', collectionId);
@@ -170,7 +180,6 @@ export const confirmImageReplacement = (configId, selectedAlias, replacementAlia
     }).end()
       .then(function (res) {
         let json = JSON.parse(res.text);
-        console.log(json);
         dispatch(updateImageMatrix(json.Stage, json.Row, json.Column, json.Alias));
         dispatch(toggleChangeImageModal(undefined));
       }, function (err) {
@@ -205,7 +214,7 @@ export const changeReplacementType = (replacementType, configId, replacingAlias)
     dispatch(setReplacementType(replacementType));
   }
 };
-export const toggleChangeImageModal = (imageAlias, row, column) => ({type: TOGGLE_CHANGE_IMAGE_MODAL, imageAlias: imageAlias, row: row, column: column});
+export const toggleChangeImageModal = (stage, row, column, imageAlias) => ({type: TOGGLE_CHANGE_IMAGE_MODAL, imageAlias: imageAlias, stage: stage, row: row, column: column});
 export const incrementWizard = () => ({type: INCREMENT_WIZARD});
 export const decrementWizard = () => ({type: DECREMENT_WIZARD});
 export const toggleMayNotHaveImage = (mayNotHaveImage) => ({type: TOGGLE_MAY_NOT_HAVE_IMAGE, mayNotHaveImage: mayNotHaveImage});
@@ -278,6 +287,9 @@ const configViewState = Immutable.Map({
   configErrors: [],
   showChangeImageModal: false,
   selectedAlias: undefined,
+  selectedStage: undefined,
+  selectedRow: undefined,
+  selectedColumn: undefined,
   replacementType: undefined,
   replacementAlias: undefined,
   randomAlias: undefined,
@@ -296,6 +308,21 @@ export default function configViewReducer(state = configViewState, action = null
       stage = stage.set(action.row.toString(), row);
       return state.set('createdStages', matrix.set(action.stage.toString(), stage));
     }
+    case INCREMENT_STAGE: {
+      const currentStage = state.get('currentStageBeingSet');
+      const numberOfStages = state.get('stages');
+      if (currentStage < numberOfStages) {
+        return state.set('currentStageBeingSet', currentStage + 1);
+      }
+      return
+    }
+    case DECREMENT_STAGE: {
+      const currentStage = state.get('currentStageBeingSet');
+      if (currentStage > 1) {
+        return state.set('currentStageBeingSet', currentStage - 1);
+      }
+      return
+    }
     case SET_CONFIGS: {
       let configList = [];
       if (action.configs) {
@@ -311,11 +338,8 @@ export default function configViewReducer(state = configViewState, action = null
     }
     case UPDATE_IMAGE_MATRIX:
     {
-      const matrix = state.get('createdStages');
-      console.log(matrix);
-      console.log(action.stage);
+      const matrix = state.get('createdStages');;
       const stage = matrix.get(action.stage);
-      console.log(stage);
       const row = stage.get(action.row);
       if (action.alias === 'user-img') {
         state = state.set('assignUserImgError', false)
@@ -339,13 +363,8 @@ export default function configViewReducer(state = configViewState, action = null
     }
     case TOGGLE_CHANGE_IMAGE_MODAL:
     {
-      console.log(action);
-      if (typeof(action.imageAlias) === 'string') {
-        state = state.set('selectedAlias', action.imageAlias);
-      }
-      if (typeof(action.row) === 'number' && typeof(action.row) === 'number') {
-        // TODO
-        console.log('you need to store the row and column of this to be used when replacing because there could be more than one "user-img" in the table...');
+      if (typeof(action.imageAlias) === 'string' && typeof(action.stage) === 'number' && typeof(action.row) === 'number' && typeof(action.row) === 'number') {
+        state = state.set('selectedAlias', action.imageAlias).set('selectedStage', action.stage).set("selectedRow", action.row).set("selectedColumn", action.column);
       }
       if (state.get('showChangeImageModal')) {
         state = state.set('replacementType', undefined).set('replacementAlias', undefined);

@@ -58,6 +58,9 @@ export default class ConfigStages extends React.Component {
         <ChangeImageModal show={this.props.viewState.get('showChangeImageModal')}
                           toggleModal={this.props.toggleChangeImageModal}
                           selectedAlias={this.props.viewState.get('selectedAlias')}
+                          selectedRow={this.props.viewState.get('selectedRow')}
+                          selectedColumn={this.props.viewState.get('selectedColumn')}
+                          selectedStage={this.props.viewState.get('currentStageBeingSet')}
                           replacementType={this.props.viewState.get('replacementType')}
                           replacementAlias={this.props.viewState.get('replacementAlias')}
                           configId={this.props.viewState.get('configId')}

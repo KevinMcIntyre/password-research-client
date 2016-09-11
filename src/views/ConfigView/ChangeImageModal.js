@@ -18,7 +18,7 @@ export default class ChangeImageModal extends React.Component {
   }
 
   confirm() {
-    this.props.confirmImageReplacement(this.props.configId, this.props.selectedAlias, this.props.replacementAlias, this.props.replacementType, this.props.collection ? this.props.collection.id : undefined);
+    this.props.confirmImageReplacement(this.props.configId, this.props.selectedAlias, this.props.selectedStage, this.props.selectedRow, this.props.selectedColumn, this.props.replacementAlias, this.props.replacementType, this.props.collection ? this.props.collection.id : undefined);
     store.dispatch(resetCollectionSelection());
   }
 
