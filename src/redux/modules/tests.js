@@ -59,7 +59,49 @@ export const getTrials = () => {
     });
   }
 };
-export const saveTrial = (subjectId, configId, stages, rows, columns, imageMaybeNotPresent, matrix, userPassImages, trials) => {
+export const savePasswordTrial = (subjectId) => {
+  return dispatch => {
+    const request = {
+      subjectId: parseInt(subjectId, 10)
+    };
+    agent
+    .post('http://localhost:7000/test/settings/pin/submit')
+    .send(JSON.stringify(request))
+    .set({
+    'Access-Control-Allow-Origin': 'localhost:7000'
+    })
+    .end()
+    .then(function (res) {
+      dispatch(addTrial((JSON.parse(res.text))));
+    }, function (err) {
+      console.log(err);
+    }).then(function() {
+      dispatch(resetTestSetup());
+    });
+  }
+}
+export const savePinTrial = (subjectId) => {
+  return dispatch => {
+    const request = {
+      subjectId: parseInt(subjectId, 10)
+    };
+    agent
+    .post('http://localhost:7000/test/settings/pin/submit')
+    .send(JSON.stringify(request))
+    .set({
+    'Access-Control-Allow-Origin': 'localhost:7000'
+    })
+    .end()
+    .then(function (res) {
+      dispatch(addTrial((JSON.parse(res.text))));
+    }, function (err) {
+      console.log(err);
+    }).then(function() {
+      dispatch(resetTestSetup());
+    });
+  }
+}
+export const saveImageTrial = (subjectId, configId, stages, rows, columns, imageMaybeNotPresent, matrix, userPassImages, trials) => {
   return dispatch => {
     const request = {
       subjectId: parseInt(subjectId, 10),
@@ -72,7 +114,7 @@ export const saveTrial = (subjectId, configId, stages, rows, columns, imageMaybe
       userPassImages: convertUserPassImages(userPassImages)
     };
     agent
-    .post('http://localhost:7000/test/settings/submit')
+    .post('http://localhost:7000/test/settings/image/submit')
     .send(JSON.stringify(request))
     .set({
     'Access-Control-Allow-Origin': 'localhost:7000'
@@ -182,7 +224,9 @@ export const actions = {
   selectSubject,
   setUserImageSelect,
   selectUserImage,
-  saveTrial,
+  saveImageTrial,
+  savePasswordTrial,
+  savePinTrial,
   getTrials
 };
 
