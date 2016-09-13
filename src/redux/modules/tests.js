@@ -24,16 +24,19 @@ const START_TRIAL = 'START_TRIAL';
 const SET_TRIALS = 'SET_TRIALS';
 const ADD_TRIAL = 'ADD_TRIAL';
 const POP_TRIAL = 'POP_TRIAL';
+const SET_ALLOWED_ATTEMPTS = 'SET_ALLOWED_ATTEMPTS';
 
 // ------------------------------------
 // Wizard Stage Constants
 // ------------------------------------
 const SUBJECT_SELECT = 1;
 const IMAGEPASS_SETUP = 2;
-const CONFIRMATION = 3;
+const PASSWORD_SETUP = 3;
+const CONFIRMATION = 4;
 export const wizardStages = {
   SUBJECT_SELECT,
   IMAGEPASS_SETUP,
+  PASSWORD_SETUP,
   CONFIRMATION
 };
 
@@ -213,6 +216,8 @@ export const loadConfigs = () => {
 
 export const popTrial = (trialId) => ({type: POP_TRIAL, trialId: trialId});
 
+export const setAllowedAttemptsValue = (value) => ({type: SET_ALLOWED_ATTEMPTS, value: value});
+
 export const actions = {
   setSubject,
   setTest,
@@ -227,7 +232,8 @@ export const actions = {
   saveImageTrial,
   savePasswordTrial,
   savePinTrial,
-  getTrials
+  getTrials,
+  setAllowedAttemptsValue
 };
 
 // ------------------------------------
@@ -254,13 +260,26 @@ const testViewState = Immutable.Map({
     stages: undefined,
     imageMayNotBePresent: undefined,
     userImages: []
-  })
+  }),
+  attemptsAllowed: '',
+  attemptsNotSetError: false
 });
 // ------------------------------------
 // Reducer
 // ------------------------------------
 export default function testViewReducer(state = testViewState, action = null) {
   switch (action.type) {
+    case SET_ALLOWED_ATTEMPTS: {
+      if (action.value === '') {
+        return state.set('attemptsAllowed', '');
+      }
+      const previousValue = state.get('attemptsAllowed');
+      const parsedValue = parseInt(action.value, 10);
+      if (isNaN(parsedValue) || parsedValue > 100 || parsedValue <= 0) {
+        return state.set('attemptsAllowed', previousValue);
+      }
+      return state.set('attemptsAllowed', parsedValue);
+    }
     case POP_TRIAL: {
       let trials = state.get('trials').filter((trial) => {
         return trial.id != action.trialId
@@ -411,6 +430,8 @@ export default function testViewReducer(state = testViewState, action = null) {
         }
         if (state.get('testType') === 'image') {
           return state.set('wizardStage', IMAGEPASS_SETUP).set('subjectSelectError', false);
+        } else if (state.get('testType') === 'password' || state.get('testType') === 'pin') {
+          return state.set('wizardStage', PASSWORD_SETUP).set('subjectSelectError', false);
         } else {
           return state.set('wizardStage', CONFIRMATION).set('subjectSelectError', false);
         }
@@ -435,6 +456,14 @@ export default function testViewReducer(state = testViewState, action = null) {
           }
         }
       }
+      if (currentState === PASSWORD_SETUP) {
+        const allowedAttempts = state.get('attemptsAllowed');
+        if (isNaN(allowedAttempts) || allowedAttempts > 100 || allowedAttempts <= 0) {
+          return state.set('attemptsNotSetError', true)
+        } else {
+          return state.set('attemptsNotSetError', false).set('wizardStage', CONFIRMATION);
+        }
+      }
       if (currentState === CONFIRMATION) {
         return testViewState;
       } else {
@@ -443,9 +472,14 @@ export default function testViewReducer(state = testViewState, action = null) {
     }
     case DECREMENT_WIZARD: {
       let currentState = state.get('wizardStage');
+      if (currentState === PASSWORD_SETUP) {
+        return state.set('wizardStage', SUBJECT_SELECT);
+      }
       if (currentState === CONFIRMATION) {
         if (state.get('testType') === 'image') {
           return state.set('wizardStage', IMAGEPASS_SETUP);
+        } else if (state.get('testType') === 'password' || state.get('testType') === 'pin') {
+          return state.set('wizardStage', PASSWORD_SETUP);
         } else {
           return state.set('wizardStage', SUBJECT_SELECT);
         }

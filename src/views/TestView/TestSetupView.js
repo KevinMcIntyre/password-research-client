@@ -24,6 +24,7 @@ export class TestSetupView extends React.Component {
     this.setConfig = this.setConfig.bind(this);
     this.renderSubjectSelect = this.renderSubjectSelect.bind(this);
     this.renderImagePassSetup = this.renderImagePassSetup.bind(this);
+    this.renderPasswordSetup = this.renderPasswordSetup.bind(this);
     this.renderConfirmation = this.renderConfirmation.bind(this);
     this.wizardNextButton = this.wizardNextButton.bind(this);
     this.wizardBackButton = this.wizardBackButton.bind(this);
@@ -205,6 +206,39 @@ export class TestSetupView extends React.Component {
     );
   }
 
+  renderPasswordSetup() {
+    return (
+      <div className='container text-center'>
+        <h3>How many attempts is the subject allowed before failure?</h3>
+        <br/>
+        <h4>Enter the allowed number of attempts below.</h4>
+        <h5>Please note, the maximum amount of attempts is capped at 100</h5>
+        <div className={classes.attemptFieldContainer}>
+          <Input
+            ref='attemptsAllowed'
+            type='text'
+            className={classes.attemptField}
+            bsStyle={this.props.viewState.tests.get('attemptsNotSetError') ? 'error' : undefined}
+            value={this.props.viewState.tests.get('attemptsAllowed')}
+            onChange={(e) => {
+              this.props.setAllowedAttemptsValue(e.target.value);
+            }}
+          />
+        </div>
+        {this.props.viewState.tests.get('attemptsNotSetError') ?
+          <div>
+            <h4 className={classes.testSetupErrorText}>Please enter the allowed number of attempts to continue.</h4>
+          </div> :
+          <span></span>
+        }
+        <div className={classes.buttonGroup}>
+          <Button className={classes.backButton} bsSize={'large'} onClick={this.wizardBackButton}>Back</Button>
+          <Button bsSize={'large'} onClick={this.wizardNextButton}>Next</Button>
+        </div>
+      </div>
+    );
+  }
+
   renderImagePassSetup() {
     let configbox;
     if (this.props.viewState.tests.get('imageTestOption')) {
@@ -320,6 +354,14 @@ export class TestSetupView extends React.Component {
                         {this.props.viewState.tests.get('testType') === 'pin' ? 'Pin Number' : ''}
                       </td>
                     </tr>
+                    <tr>
+                      <td className={classes.optionKey}>
+                        Attempts allowed:
+                      </td>
+                      <td>
+                        {this.props.viewState.tests.get('attemptsAllowed')}
+                      </td>
+                    </tr>
                     </tbody>
                   </table>
                 </div>
@@ -345,6 +387,8 @@ export class TestSetupView extends React.Component {
     return (
       <div>
         {this.props.viewState.tests.get('wizardStage') === wizardStages.SUBJECT_SELECT ? this.renderSubjectSelect()
+          : <span></span>}
+        {this.props.viewState.tests.get('wizardStage') === wizardStages.PASSWORD_SETUP ? this.renderPasswordSetup()
           : <span></span>}
         {this.props.viewState.tests.get('wizardStage') === wizardStages.IMAGEPASS_SETUP ? this.renderImagePassSetup()
           : <span></span>}
