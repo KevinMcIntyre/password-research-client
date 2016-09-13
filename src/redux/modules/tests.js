@@ -4,7 +4,6 @@ import _agent from 'superagent';
 import _promise from 'bluebird';
 import _agent_promise from 'superagent-promise';
 import { push } from 'react-router-redux';
-import { trimMatrix } from './config'
 
 const agent = _agent_promise(_agent, _promise);
 
@@ -62,13 +61,15 @@ export const getTrials = () => {
     });
   }
 };
-export const savePasswordTrial = (subjectId) => {
+export const savePasswordTrial = (subjectId, trialType, allowedAttempts) => {
   return dispatch => {
     const request = {
-      subjectId: parseInt(subjectId, 10)
+      subjectId: parseInt(subjectId, 10),
+      trialType: trialType,
+      allowedAttempts: allowedAttempts
     };
     agent
-    .post('http://localhost:7000/test/settings/pin/submit')
+    .post('http://localhost:7000/test/settings/password/submit')
     .send(JSON.stringify(request))
     .set({
     'Access-Control-Allow-Origin': 'localhost:7000'
@@ -83,37 +84,12 @@ export const savePasswordTrial = (subjectId) => {
     });
   }
 }
-export const savePinTrial = (subjectId) => {
-  return dispatch => {
-    const request = {
-      subjectId: parseInt(subjectId, 10)
-    };
-    agent
-    .post('http://localhost:7000/test/settings/pin/submit')
-    .send(JSON.stringify(request))
-    .set({
-    'Access-Control-Allow-Origin': 'localhost:7000'
-    })
-    .end()
-    .then(function (res) {
-      dispatch(addTrial((JSON.parse(res.text))));
-    }, function (err) {
-      console.log(err);
-    }).then(function() {
-      dispatch(resetTestSetup());
-    });
-  }
-}
-export const saveImageTrial = (subjectId, configId, stages, rows, columns, imageMaybeNotPresent, matrix, userPassImages, trials) => {
+export const saveImageTrial = (subjectId, configId, stages, userPassImages, trials) => {
   return dispatch => {
     const request = {
       subjectId: parseInt(subjectId, 10),
       configId: parseInt(configId, 10),
       stages: parseInt(stages, 10),
-      rows: parseInt(rows, 10),
-      columns: parseInt(columns, 10),
-      imageMaybeNotPresent: imageMaybeNotPresent,
-      matrix: trimMatrix(stages, rows, columns, matrix),
       userPassImages: convertUserPassImages(userPassImages)
     };
     agent
