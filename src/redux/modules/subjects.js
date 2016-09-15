@@ -228,7 +228,7 @@ export default function subjectListViewReducer(state = subjectListViewState, act
         }
         return 0;
       });
-      state.set('subjectMap', state.get('subjectMap').set(action.subject.value, action.subject.label));
+      state = state.set('subjectMap', state.get('subjectMap').set(action.subject.value, action.subject.label));
       return state.set('subjectList', newSubjectList);
     }
     case SET_PROFILE: {

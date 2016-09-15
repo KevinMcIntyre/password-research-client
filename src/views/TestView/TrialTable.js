@@ -3,7 +3,7 @@ import { Button } from 'react-bootstrap';
 import Icon from 'react-fa';
 import { Table, Column, Cell } from 'fixed-data-table';
 import Moment from 'moment';
-import { startTrial } from '../../redux/modules/trials';
+import { startTrial as startTrialAction } from '../../redux/modules/trials';
 import classes from './TestView.scss';
 import { store } from '../../main';
 
@@ -13,8 +13,8 @@ export default class TrialTable extends React.Component {
     this.startTrial = this.startTrial.bind(this);
   }
 
-  startTrial(trialId) {
-    store.dispatch(startTrial(trialId));
+  startTrial(trialId, trialType) {
+    store.dispatch(startTrialAction(trialId, trialType));
   }
 
   render() {
@@ -26,7 +26,7 @@ export default class TrialTable extends React.Component {
 
     const StartTrialButtonCell = ({rowIndex, data, col, ...props}) => (
       <div className={classes.runTestButtonCell}>
-        <Button bsStyle='success' bsSize='xsmall' onClick={this.startTrial.bind(undefined, data[rowIndex]['id'])}>Start Trial</Button>
+        <Button bsStyle='success' bsSize='xsmall' onClick={this.startTrial.bind(undefined, data[rowIndex]['id'], data[rowIndex]['trialType'])}>Start Trial</Button>
       </div>
     );
 
@@ -40,7 +40,7 @@ export default class TrialTable extends React.Component {
           maxHeight={300}
           rowsCount={this.props.trials ? this.props.trials.length : 0}
           rowHeight={50}
-          width={1000}
+          width={1075}
           height={300}
           headerHeight={50}
         >
@@ -63,6 +63,12 @@ export default class TrialTable extends React.Component {
           align='center'
         />
         <Column
+          header={<Cell>Attempts Allowed</Cell>}
+          cell={<TextCell data={this.props.trials} col='attemptsAllowed' />}
+          width={100}
+          align='center'
+        />
+        <Column
           header={<Cell>Date Created</Cell>}
           cell={<TextCell data={this.props.trials} col='creationDate' />}
           width={185}
@@ -73,7 +79,7 @@ export default class TrialTable extends React.Component {
           align='center'
           header={<Cell>Run Test</Cell>}
           cell={<StartTrialButtonCell data={this.props.trials} />}
-          width={150}
+          width={125}
         />
       </Table>
     );

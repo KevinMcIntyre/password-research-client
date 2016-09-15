@@ -35,31 +35,19 @@ export class TestSetupView extends React.Component {
   }
 
   saveTrial() {
-    switch (this.props.viewState.tests.get('testType')) {
-      case "password": {
-        this.props.savePasswordTrial(this.props.viewState.tests.get('subjectId'));
-        break;
-      }
-      case "pin": {
-        this.props.savePinTrial(this.props.viewState.tests.get('subjectId'));
-        break;
-      }
-      case "image": {
-        this.props.saveImageTrial(
-          this.props.viewState.tests.get('subjectId'),
-          this.props.viewState.config.get('configId'),
-          this.props.viewState.config.get('stages'),
-          this.props.viewState.config.get('rows'),
-          this.props.viewState.config.get('columns'),
-          this.props.viewState.config.get('mayNotHaveSubjectImage'),
-          this.props.viewState.config.get('createdStages'),
-          this.props.viewState.tests.get('config').get('userImages')
-        );
-        break;
-      }
-      default: {
-        throw new Error("Invalid test type");
-      }
+    if (this.props.viewState.tests.get('testType') === 'image') {
+      this.props.saveImageTrial(
+        this.props.viewState.tests.get('subjectId'),
+        this.props.viewState.config.get('configId'),
+        this.props.viewState.config.get('stages'),
+        this.props.viewState.tests.get('config').get('userImages')
+      );
+    } else {
+      this.props.savePasswordTrial(
+        this.props.viewState.tests.get('subjectId'),
+        this.props.viewState.tests.get('testType'),
+        this.props.viewState.tests.get('attemptsAllowed')
+      );
     }
   }
 

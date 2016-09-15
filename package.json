@@ -72,7 +72,7 @@
     "react-router-bootstrap": "^0.20.1",
     "react-router-redux": "^2.1.0",
     "react-select": "^1.0.0-beta10",
-    "react-spinkit": "^1.1.4",
+    "react-spinkit": "^1.1.11",
     "react-ux-password-field": "0.9.10",
     "redux": "^3.0.0",
     "redux-actions": "^0.9.0",

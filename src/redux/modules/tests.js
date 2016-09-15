@@ -84,7 +84,7 @@ export const savePasswordTrial = (subjectId, trialType, allowedAttempts) => {
     });
   }
 }
-export const saveImageTrial = (subjectId, configId, stages, userPassImages, trials) => {
+export const saveImageTrial = (subjectId, configId, stages, userPassImages) => {
   return dispatch => {
     const request = {
       subjectId: parseInt(subjectId, 10),
@@ -207,7 +207,6 @@ export const actions = {
   selectUserImage,
   saveImageTrial,
   savePasswordTrial,
-  savePinTrial,
   getTrials,
   setAllowedAttemptsValue
 };

@@ -19,13 +19,59 @@ const SET_AUTH_STATUS = 'SET_AUTH_STATUS';
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const submitPassword = (trialId, password) => {
+  return dispatch => {
+    return agent
+      .post('http://localhost:7000/trial/submit-password')
+      .send(JSON.stringify({
+        trialId: trialId,
+        password: password,
+        unixTimestamp: new Date().getTime().toString()
+      }))
+      .set({
+        'Access-Control-Allow-Origin': 'localhost:7000'
+      })
+      .end()
+      .then(function (res) {
+        const resJson = JSON.parse(res.text);
+        if (resJson.trialComplete) {
+          dispatch(endTrial(resJson.successfulAuth))
+        }
+      }, function (err) {
+        console.log(err);
+      })
+  }
+};
+export const setStartTimeAndBegin = (trialId, trialType) => {
+  return dispatch => {
+    return agent
+      .post('http://localhost:7000/trial/set-start-time')
+      .send(JSON.stringify({
+        trialId: trialId,
+        isImageTrial: (trialType === 'Pass-Image'),
+        unixTimestamp: new Date().getTime().toString()
+      }))
+      .set({
+        'Access-Control-Allow-Origin': 'localhost:7000'
+      })
+      .end()
+      .then(function (res) {
+        res = JSON.parse(res.text);
+        if(res.success) {
+          dispatch(setWizardStage(wizardStages.AUTHENTICATION));
+        }
+      }, function (err) {
+        console.log(err);
+      })
+  }
+};
 export const setAuthStatus = (success) => ({type: SET_AUTH_STATUS, success: success});
 export const incrementAuth = () => ({type: INCREMENT_AUTH});
 export const selectPassImage = (trialId, stage, imageId) => {
   return dispatch => {
     dispatch(incrementAuth());
     return agent
-    .post('http://localhost:7000/trial/submit')
+    .post('http://localhost:7000/trial/submit-image')
     .send(JSON.stringify({
       trialId: trialId,
       stage: stage,
@@ -48,7 +94,7 @@ export const selectPassImage = (trialId, stage, imageId) => {
 };
 export const setWizardStage = (stage) => ({type: SET_WIZARD_STAGE, stage: stage});
 export const setTrial = (trialData) => ({type: SET_TRIAL, trialData: trialData});
-export const startTrial = (trialId) => {
+export const startTrial = (trialId, trialType) => {
   return dispatch => {
     dispatch(setTestingStatus(true));
     dispatch(push('/testing'));
@@ -56,14 +102,19 @@ export const startTrial = (trialId) => {
     return agent
     .post('http://localhost:7000/trial/start')
     .send(JSON.stringify({
-        trialId: trialId
+        trialId: trialId,
+        isImageTrial: (trialType === 'Pass-Image')
       }))
     .set({
       'Access-Control-Allow-Origin': 'localhost:7000'
     })
     .end()
     .then(function (res) {
-      dispatch(setTrial((JSON.parse(res.text))));
+      dispatch(
+        setTrial({
+              ...JSON.parse(res.text),
+              ...{trialType: trialType}
+      }));
     }, function (err) {
       console.log(err);
     })
@@ -97,7 +148,8 @@ export const actions = {
   setWizardStage,
   endTrial,
   stopTrial,
-  redirectToTestSetup
+  redirectToTestSetup,
+  setStartTimeAndBegin
 };
 
 
@@ -119,7 +171,9 @@ export const wizardStages = {
 // ------------------------------------
 const trialState = Immutable.Map({
   trialId: undefined,
+  trialType: undefined,
   subjectName: undefined,
+  attemptsAllowed: undefined,
   stages: undefined,
   rows: undefined,
   columns: undefined,
@@ -148,14 +202,23 @@ export default function trialReducer(state = trialState, action = null) {
       return state.set('authStage', currentStage + 1);
     }
     case SET_TRIAL: {
-      return state
-        .set('trialId', action.trialData.id)
-        .set('subjectName', action.trialData.subjectName)
-        .set('stages', action.trialData.stages)
-        .set('rows', action.trialData.rows)
-        .set('columns', action.trialData.columns)
-        .set('imageMayNotBePresent', action.trialData.imageMayNotBePresent)
-        .set('matrix', Immutable.fromJS(action.trialData.matrix));
+      if (action.trialData.trialType === "Pass-Image") {
+        return state
+          .set('trialId', action.trialData.id)
+          .set('trialType', action.trialData.trialType)
+          .set('subjectName', action.trialData.subjectName)
+          .set('stages', action.trialData.stages)
+          .set('rows', action.trialData.rows)
+          .set('columns', action.trialData.columns)
+          .set('imageMayNotBePresent', action.trialData.imageMayNotBePresent)
+          .set('matrix', Immutable.fromJS(action.trialData.matrix));
+      } else {
+        return state
+          .set('trialId', action.trialData.id)
+          .set('trialType', action.trialData.trialType)
+          .set('attemptsAllowed', action.trialData.attemptsAllowed)
+          .set('subjectName', action.trialData.subjectName)
+      }
     }
     case SET_WIZARD_STAGE: {
       return state.set('wizardStage', action.stage);
