@@ -28,7 +28,6 @@ export const togglePinModal = () => ({type: TOGGLE_PIN_MODAL});
 export const setPinNumber = (pinNumber) => ({type: SET_PIN_NUMBER, pinNumber: pinNumber});
 export const savePinNumber = (request) => {
   return dispatch => {
-    console.log(request);
     return agent
       .post('http://localhost:7000/subject/save/pin')
       .field('subjectId', request.subjectId)
@@ -49,7 +48,6 @@ export const togglePasswordModal = () => ({type: TOGGLE_PASSWORD_MODAL});
 export const setPassword = (password, entropy, strength) => ({type: SET_PASSWORD, password: password, entropy: entropy, strength: strength});
 export const savePassword = (request) => {
   return dispatch => {
-    console.log(request);
     return agent
       .post('http://localhost:7000/subject/save/password')
       .field('subjectId', request.subjectId)

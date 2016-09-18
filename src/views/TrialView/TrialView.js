@@ -58,6 +58,9 @@ export class TrialView extends React.Component {
                   <PinAuthView subjectName={this.props.viewState.get('subjectName')}
                                trialId={this.props.viewState.get('trialId')}
                                submitPinNumber={this.props.submitPassword}
+                               blank={this.props.viewState.get('showBlankPasswordMessage')}
+                               incorrect={this.props.viewState.get('showIncorrectPasswordMessage')}
+                               attemptsLeft={this.props.viewState.get('attemptsAllowed') - this.props.viewState.get('attemptsTaken')}
                   />;
                 break;
               }

@@ -74,7 +74,7 @@
 .passwordInput {
   text-align: center;
   margin-top: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   height: auto;
   border-radius: 0;
   font-size: 1.25em;
@@ -83,6 +83,10 @@
   &:focus {
     border: 1px solid #c3c3c3;
   }
+}
+
+.submitPasswordButtonGroup{
+  margin-top: 20px;
 }
 
 .passwordTable {

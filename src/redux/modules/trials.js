@@ -15,31 +15,41 @@ const RESET_TRIAL = 'RESET_TRIAL';
 const SET_WIZARD_STAGE = 'SET_WIZARD_STAGE';
 const INCREMENT_AUTH = 'INCREMENT_AUTH';
 const SET_AUTH_STATUS = 'SET_AUTH_STATUS';
+const SET_DISPLAY_INCORRECT_PASSWORD_MSG = 'SET_DISPLAY_INCORRECT_PASSWORD_MSG';
+const SET_BLANK_PASSWORD_MSG = 'SET_BLANK_PASSWORD_MSG';
 
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const setShowIncorrectPasswordMessage = (show) => ({type: SET_DISPLAY_INCORRECT_PASSWORD_MSG, show: show})
+export const setBlankPasswordMessage = (show) => ({type: SET_BLANK_PASSWORD_MSG, show: show})
 export const submitPassword = (trialId, password) => {
   return dispatch => {
-    return agent
-      .post('http://localhost:7000/trial/submit-password')
-      .send(JSON.stringify({
-        trialId: trialId,
-        password: password,
-        unixTimestamp: new Date().getTime().toString()
-      }))
-      .set({
-        'Access-Control-Allow-Origin': 'localhost:7000'
-      })
-      .end()
-      .then(function (res) {
-        const resJson = JSON.parse(res.text);
-        if (resJson.trialComplete) {
-          dispatch(endTrial(resJson.successfulAuth))
-        }
-      }, function (err) {
-        console.log(err);
-      })
+    if (!password || password.length < 1) {
+      dispatch(setBlankPasswordMessage(true));
+    } else {
+      return agent
+        .post('http://localhost:7000/trial/submit-password')
+        .send(JSON.stringify({
+          trialId: trialId,
+          password: password,
+          unixTimestamp: new Date().getTime().toString()
+        }))
+        .set({
+          'Access-Control-Allow-Origin': 'localhost:7000'
+        })
+        .end()
+        .then(function (res) {
+          const resJson = JSON.parse(res.text);
+          if (resJson.trialComplete) {
+            dispatch(endTrial(resJson.successfulAuth))
+          } else {
+            dispatch(setShowIncorrectPasswordMessage(true));
+          }
+        }, function (err) {
+          console.log(err);
+        });
+    }
   }
 };
 export const setStartTimeAndBegin = (trialId, trialType) => {
@@ -85,7 +95,7 @@ export const selectPassImage = (trialId, stage, imageId) => {
     .then(function (res) {
         const resJson = JSON.parse(res.text);
         if (resJson.trialComplete) {
-          dispatch(endTrial(resJson.successfulAuth))
+          dispatch(endTrial(resJson.successfulAuth));
         }
     }, function (err) {
       console.log(err);
@@ -145,6 +155,7 @@ export const redirectToTestSetup = () => {
 
 export const actions = {
   selectPassImage,
+  submitPassword,
   setWizardStage,
   endTrial,
   stopTrial,
@@ -174,6 +185,7 @@ const trialState = Immutable.Map({
   trialType: undefined,
   subjectName: undefined,
   attemptsAllowed: undefined,
+  attemptsTaken: 0,
   stages: undefined,
   rows: undefined,
   columns: undefined,
@@ -181,7 +193,9 @@ const trialState = Immutable.Map({
   matrix: undefined,
   authStage: 1,
   wizardStage: INTRO,
-  successfulAuth: undefined
+  successfulAuth: undefined,
+  showIncorrectPasswordMessage: false,
+  showBlankPasswordMessage: false
 });
 
 // ------------------------------------
@@ -189,6 +203,14 @@ const trialState = Immutable.Map({
 // ------------------------------------
 export default function trialReducer(state = trialState, action = null) {
   switch (action.type) {
+    case SET_BLANK_PASSWORD_MSG: {
+      return state.set('showBlankPasswordMessage', action.show);
+    }
+    case SET_DISPLAY_INCORRECT_PASSWORD_MSG: {
+      return state.set('showIncorrectPasswordMessage', action.show)
+        .set('showBlankPasswordMessage', false)
+        .set('attemptsTaken', state.get('attemptsTaken') + 1);
+    }
     case SET_AUTH_STATUS: {
       return state.set('successfulAuth', action.success);
     }

@@ -11,6 +11,7 @@ export default class PasswordModal extends React.Component {
 
   submitPassword() {
     const passwordInputState = this.refs['passwordfield'].state;
+    console.log(passwordInputState);
     this.props.savePassword({
       subjectId: this.props.subjectId,
       entropy: passwordInputState.entropy,
@@ -68,14 +69,19 @@ export default class PasswordModal extends React.Component {
         <div className='text-center'>
           <h4>A password for {this.props.subjectName} is not currently set.</h4>
           <h4>Set a password in the field below.</h4>
-          <PasswordInput id={classes.passwordField}
-                         ref='passwordfield'
-                         className={classes.passwordInput}
-            />
-          <br/>
-          <Button onClick={this.submitPassword} className={classes.saveButton} bsStyle='success'>Save
-            Password</Button>
-          <Button onClick={this.props.toggleModal}>Cancel</Button>
+          <div className={classes.passwordContainer}>
+            <PasswordInput id={classes.passwordField}
+                           ref='passwordfield'
+                           infoBar={true}
+                           zxcvbn={true}
+                           className={classes.passwordInput}
+              />
+          </div>
+          <div className={classes.submitPasswordButtonGroup}>
+            <Button onClick={this.submitPassword} className={classes.saveButton} bsStyle='success'>Save
+              Password</Button>
+            <Button onClick={this.props.toggleModal}>Cancel</Button>
+          </div>
         </div>
       );
     }
