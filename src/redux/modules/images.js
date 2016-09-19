@@ -4,6 +4,7 @@ import _agent from 'superagent';
 import _promise from 'bluebird';
 import _agent_promise from 'superagent-promise';
 import { push } from 'react-router-redux';
+import { setUserHasImagesToTrue } from './subjects';
 
 const agent = _agent_promise(_agent, _promise);
 
@@ -162,6 +163,10 @@ export const saveImage = (subjectId, collectionId, imageAlias) => {
       })
       .end()
       .then(function(res) {
+        let parsedSubjectId = parseInt(subjectId, 10);
+        if (parsedSubjectId !== 0) {
+          dispatch(setUserHasImagesToTrue(parsedSubjectId));
+        }
         return dispatch(saveMultipleImages(subjectId, collectionId, res.text.split('"')[1]));
       }, function(err) {
         console.log(err);

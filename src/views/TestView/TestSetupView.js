@@ -164,14 +164,17 @@ export class TestSetupView extends React.Component {
         <div className={classes.radioContainer}>
           <div className='form-group'>
             <Input ref='image' className={classes.radioButton} name='test' type='radio' standAlone={true}
+                   disabled={this.props.viewState.tests.get('subjectId') != undefined && !this.props.viewState.tests.get('subjectHasImages')}
                    label='Pass-Image'
                    value='image' checked={this.props.viewState.tests.get('testType') === 'image'}
                    onChange={this.setTest.bind(this, 'image')}/>
             <Input ref='password' className={classes.radioButton} name='test' type='radio' standAlone={true}
+                   disabled={this.props.viewState.tests.get('subjectId') != undefined && !this.props.viewState.tests.get('subjectHasPassword')}
                    label='Password'
                    value='password' checked={this.props.viewState.tests.get('testType') === 'password'}
                    onChange={this.setTest.bind(this, 'password')}/>
             <Input ref='pin' className={classes.radioButton} name='test' type='radio' standAlone={true}
+                   disabled={this.props.viewState.tests.get('subjectId') != undefined && !this.props.viewState.tests.get('subjectHasPin')}
                    label='Pin Number'
                    value='pin' checked={this.props.viewState.tests.get('testType') === 'pin'}
                    onChange={this.setTest.bind(this, 'pin')}/>

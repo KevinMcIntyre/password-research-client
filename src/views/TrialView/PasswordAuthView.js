@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
+import PasswordInput from '../../components/PasswordInput/PasswordInput';
 import classes from './TrialView.scss';
 
 export default class PasswordAuthView extends React.Component {
@@ -8,8 +9,8 @@ export default class PasswordAuthView extends React.Component {
     this.submit = this.submit.bind(this);
   }
   submit() {
-    let password = '';
-    this.props.submitPinNumber(this.props.trialId, password);
+    this.props.submitPassword(this.props.trialId, this.refs['password-input'].getValue());
+    this.refs['password-input'].clear();
   }
   render() {
     return (
@@ -29,7 +30,9 @@ export default class PasswordAuthView extends React.Component {
                 Please enter a password.
               </h4> : ''
             }
-            <input type='password'/>
+            <div>
+              <PasswordInput ref='password-input' />
+            </div>
             <br/>
             <Button onClick={this.submit}
                     className={classes.submitPinButton}

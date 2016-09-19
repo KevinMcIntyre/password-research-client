@@ -110,7 +110,7 @@ export const saveImageTrial = (subjectId, configId, stages, userPassImages) => {
 };
 export const selectUserImage = (index, alias) => ({type: SELECT_USER_IMAGE, index: index, alias: alias});
 export const setUserImageSelect = (userImageIndex) =>({type: SET_USER_IMAGE_SELECT, userImageIndex: userImageIndex});
-export const setSubject = (subjectId, subjectName, subjectImages) => ({type: SET_SUBJECT, subjectId: subjectId, subjectName: subjectName, subjectImages: subjectImages});
+export const setSubject = (subjectId, subjectData, subjectImages) => ({type: SET_SUBJECT, subjectId: subjectId, subjectData: subjectData, subjectImages: subjectImages});
 export const setTest = (testType) => ({type: SET_TEST, testType: testType});
 export const incrementWizard = () => ({type: INCREMENT_WIZARD});
 export const decrementWizard = () => ({type: DECREMENT_WIZARD});
@@ -126,7 +126,7 @@ export const setConfig = (id, name, rows, columns, stages, imageMayNotBePresent,
   imageMayNotBePresent: imageMayNotBePresent,
   userImages: userImages
 });
-export const selectSubject = (subjectId, subjectName) => {
+export const selectSubject = (subjectId, subjectData) => {
   return dispatch => {
     if (!subjectId) {
       dispatch(setSubject(undefined));
@@ -137,7 +137,7 @@ export const selectSubject = (subjectId, subjectName) => {
       }).end()
         .then(function (res) {
           const subjectImages = JSON.parse(res.text);
-          dispatch(setSubject(subjectId, subjectName, subjectImages));
+          dispatch(setSubject(subjectId, subjectData, subjectImages));
         }, function (err) {
           console.log(err);
         });
@@ -217,10 +217,13 @@ export const actions = {
 const testViewState = Immutable.Map({
   subjectId: undefined,
   subjectName: undefined,
+  subjectHasPassword: undefined,
+  subjectHasPin: undefined,
+  subjectHasImages: undefined,
   subjectPassImages: [],
+  subjectSelectError: false,
   wizardStage: SUBJECT_SELECT,
   testType: undefined,
-  subjectSelectError: false,
   testTypeError: false,
   noConfigSelectedError: false,
   userPassImageError: false,
@@ -367,19 +370,68 @@ export default function testViewReducer(state = testViewState, action = null) {
       if (state.get('subjectSelectError')) {
         state = state.set('subjectSelectError', false);
       }
-      return state.set('subjectId', action.subjectId)
-        .set('subjectName', action.subjectName)
-        .set('subjectImages', action.subjectImages)
-        .set('noConfigSelectedError', false).set('userPassImageError', false)
-        .set('imageTestOption', undefined)
-        .set('config', Immutable.Map({
-          name: undefined,
-          rows: undefined,
-          columns: undefined,
-          stages: undefined,
-          imageMayNotBePresent: undefined,
-          userImages: []
-        }));
+      if (!action.subjectData) {
+        state = state.set('subjectId', undefined)
+          .set('subjectName', undefined)
+          .set('subjectHasPassword', undefined)
+          .set('subjectHasPin', undefined)
+          .set('subjectHasImages', undefined)
+          .set('subjectImages', undefined)
+          .set('noConfigSelectedError', false).set('userPassImageError', false)
+          .set('imageTestOption', undefined)
+          .set('config', Immutable.Map({
+            name: undefined,
+            rows: undefined,
+            columns: undefined,
+            stages: undefined,
+            imageMayNotBePresent: undefined,
+            userImages: []
+          }));
+      } else {
+        state = state.set('subjectId', action.subjectId)
+          .set('subjectName', action.subjectData.get('name'))
+          .set('subjectHasPassword', action.subjectData.get('hasPassword'))
+          .set('subjectHasPin', action.subjectData.get('hasPin'))
+          .set('subjectHasImages', action.subjectData.get('hasImages'))
+          .set('subjectImages', action.subjectImages)
+          .set('noConfigSelectedError', false).set('userPassImageError', false)
+          .set('imageTestOption', undefined)
+          .set('config', Immutable.Map({
+            name: undefined,
+            rows: undefined,
+            columns: undefined,
+            stages: undefined,
+            imageMayNotBePresent: undefined,
+            userImages: []
+          }));
+
+        switch (state.get('testType')) {
+          case "image": {
+            if (!state.get('subjectHasImages')) {
+              state = state.set('testType', undefined);
+            }
+            break;
+          }
+          case "password": {
+            if (!state.get('subjectHasPassword')) {
+              state = state.set('testType', undefined);
+            }
+            break;
+          }
+          case "pin": {
+            if (!state.get('subjectHasPin')) {
+              state = state.set('testType', undefined);
+            }
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      }
+
+
+      return state;
     }
     case SET_TEST: {
       if (state.get('testTypeError')) {

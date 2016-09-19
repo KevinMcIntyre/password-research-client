@@ -19,13 +19,15 @@ const TOGGLE_PASSWORD_MODAL = 'TOGGLE_PASSWORD_MODAL';
 const SET_PIN_NUMBER = 'SET_PIN_NUMBER';
 const TOGGLE_PIN_MODAL = 'TOGGLE_PIN_MODAL';
 const TOGGLE_PASSIMAGE_MODAL = 'TOGGLE_PASSIMAGE_MODAL';
+const SET_USER_HAS_IMAGES_TO_TRUE = 'SET_USER_HAS_IMAGES_TO_TRUE';
 
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const setUserHasImagesToTrue = (subjectId) => ({type: SET_USER_HAS_IMAGES_TO_TRUE, subjectId: subjectId});
 export const togglePassImageModal = () => ({type: TOGGLE_PASSIMAGE_MODAL});
 export const togglePinModal = () => ({type: TOGGLE_PIN_MODAL});
-export const setPinNumber = (pinNumber) => ({type: SET_PIN_NUMBER, pinNumber: pinNumber});
+export const setPinNumber = (subjectId, pinNumber) => ({type: SET_PIN_NUMBER, subjectId: parseInt(subjectId, 10), pinNumber: pinNumber});
 export const savePinNumber = (request) => {
   return dispatch => {
     return agent
@@ -39,13 +41,13 @@ export const savePinNumber = (request) => {
         if (err) {
           console.log(err);
         } else {
-          dispatch(setPinNumber(request.pinNumber));
+          dispatch(setPinNumber(request.subjectId, request.pinNumber));
         }
       });
   };
 };
 export const togglePasswordModal = () => ({type: TOGGLE_PASSWORD_MODAL});
-export const setPassword = (password, entropy, strength) => ({type: SET_PASSWORD, password: password, entropy: entropy, strength: strength});
+export const setPassword = (subjectId, password, entropy, strength) => ({type: SET_PASSWORD, subjectId: parseInt(subjectId, 10), password: password, entropy: entropy, strength: strength});
 export const savePassword = (request) => {
   return dispatch => {
     return agent
@@ -61,7 +63,7 @@ export const savePassword = (request) => {
         if (err) {
           console.log(err);
         } else {
-          dispatch(setPassword(request.password, request.entropy, request.strength));
+          dispatch(setPassword(request.subjectId, request.password, request.entropy, request.strength));
         }
       });
   };
@@ -102,8 +104,8 @@ export const loadProfile = (userId) => {
             email: response.Email,
             birthday: response.Birthday,
             password: response.Password.Valid ? response.Password.String : undefined,
-            passwordStrength: response.PasswordStrength.Valid ? response.PasswordStrength.String : undefined,
-            passwordEntropy: response.PasswordEntropy.Valid ? response.PasswordEntropy.String : undefined,
+            passwordStrength: response.PasswordStrength.Valid ? response.PasswordStrength.Int64 : undefined,
+            passwordEntropy: response.PasswordEntropy.Valid ? response.PasswordEntropy.Float64 : undefined,
             pinNumber: response.PinNumber.Valid ? response.PinNumber.String : undefined
           }));
           setTimeout(function() {
@@ -180,6 +182,12 @@ const subjectListViewState = Map({
 // ------------------------------------
 export default function subjectListViewReducer(state = subjectListViewState, action = null) {
   switch (action.type) {
+    case SET_USER_HAS_IMAGES_TO_TRUE: {
+      let subjectMap = state.get('subjectMap');
+      const subjectData = subjectMap.get(action.subjectId);
+      subjectMap = subjectMap.set(action.subjectId, subjectData.set('hasImages', true));
+      return state.set('subjectMap', subjectMap);
+    }
     case TOGGLE_PASSIMAGE_MODAL: {
       const modalState = state.get('showPassImageModal');
       return state.set('showPassImageModal', !modalState);
@@ -189,14 +197,23 @@ export default function subjectListViewReducer(state = subjectListViewState, act
       return state.set('showPinModal', !modalState);
     }
     case SET_PIN_NUMBER: {
-      return state.set('pinNumber', action.pinNumber);
+      let subjectMap = state.get('subjectMap');
+      const subjectData = subjectMap.get(action.subjectId);
+      subjectMap = subjectMap.set(action.subjectId, subjectData.set('hasPin', true));
+      return state
+        .set('subjectMap', subjectMap)
+        .set('pinNumber', action.pinNumber);
     }
     case TOGGLE_PASSWORD_MODAL: {
       const modalState = state.get('showPasswordModal');
       return state.set('showPasswordModal', !modalState);
     }
     case SET_PASSWORD: {
+      let subjectMap = state.get('subjectMap');
+      const subjectData = subjectMap.get(action.subjectId);
+      subjectMap = subjectMap.set(action.subjectId, subjectData.set('hasPassword', true));
       return state
+        .set('subjectMap', subjectMap)
         .set('password', action.password)
         .set('passwordEntropy', action.entropy)
         .set('passwordStrength', action.strength);
@@ -208,7 +225,12 @@ export default function subjectListViewReducer(state = subjectListViewState, act
         action.subjects.map((subject) => {
           subjectList.push({value: subject.Id, label: subject.Name});
           let splitName = subject.Name.split(', ');
-          subjectMap = subjectMap.set(subject.Id, splitName[1] + ' ' + splitName[0]);
+          subjectMap = subjectMap.set(subject.Id, Map({
+            name: splitName[1] + ' ' + splitName[0],
+            hasPassword: subject.PasswordSet,
+            hasPin: subject.PinSet,
+            hasImages: subject.ImagesSet
+          }));
         });
         state = state.set('subjectMap', subjectMap);
       }
@@ -226,7 +248,12 @@ export default function subjectListViewReducer(state = subjectListViewState, act
         }
         return 0;
       });
-      state = state.set('subjectMap', state.get('subjectMap').set(action.subject.value, action.subject.label));
+      state = state.set('subjectMap', state.get('subjectMap').set(action.subject.value, Map({
+        name: action.subject.label,
+        hasPassword: false,
+        hasPin: false,
+        hasImages: false
+      })));
       return state.set('subjectList', newSubjectList);
     }
     case SET_PROFILE: {

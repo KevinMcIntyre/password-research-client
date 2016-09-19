@@ -9,9 +9,7 @@ export default class PinAuthView extends React.Component {
     this.submit = this.submit.bind(this);
   }
   submit() {
-    let keypadValue = this.refs['keypad'].getValue();
-    console.log(keypadValue);
-    this.props.submitPinNumber(this.props.trialId, keypadValue);
+    this.props.submitPinNumber(this.props.trialId, this.refs['keypad'].getValue());
     this.refs['keypad'].clear();
   }
   render() {

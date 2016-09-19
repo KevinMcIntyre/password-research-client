@@ -50,7 +50,13 @@ export class TrialView extends React.Component {
               }
               case 'Password': {
                 currentView =
-                  <PasswordAuthView subjectName={this.props.viewState.get('subjectName')} />;
+                  <PasswordAuthView subjectName={this.props.viewState.get('subjectName')}
+                                    trialId={this.props.viewState.get('trialId')}
+                                    submitPassword={this.props.submitPassword}
+                                    blank={this.props.viewState.get('showBlankPasswordMessage')}
+                                    incorrect={this.props.viewState.get('showIncorrectPasswordMessage')}
+                                    attemptsLeft={this.props.viewState.get('attemptsAllowed') - this.props.viewState.get('attemptsTaken')}
+                  />;
                 break;
               }
               case 'Pin': {

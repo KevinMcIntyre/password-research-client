@@ -72,7 +72,7 @@ export default class PinInput extends React.Component {
     );
     return (
       <div className={classes.matrix}>
-        <input onChange={this.inputHandler.bind(this)} className={classes.pinField} type='password' value={this.state.pinNumber} ></input>
+        <input onChange={this.inputHandler.bind(this)} className={classes.pinField} type='password' value={this.state.pinNumber} />
         {numberPad}
       </div>
     );
