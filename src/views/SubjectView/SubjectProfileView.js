@@ -10,6 +10,7 @@ import classes from './SubjectView.scss';
 import PasswordModal from './ProfileManagementModals/PasswordModal.js';
 import PinModal from './ProfileManagementModals/PinModal.js';
 import PassImageModal from './ProfileManagementModals/PassImageModal.js';
+import TrialTable from './TrialTable.js';
 
 const mapStateToProps = (state) => ({
   viewState: state.subjects
@@ -121,14 +122,13 @@ export class SubjectProfileView extends React.Component {
                       Pass-Images</Button>
                   </td>
                 </tr>
-                <tr>
-                  <th>
-                    Trial Results
-                  </th>
-                </tr>
                 </tbody>
               </table>
             </div>
+          </div>
+          <div className={classes.trialTableContainer}>
+            <h4>Trial Results</h4>
+            <TrialTable trials={this.props.viewState.get('trials')} />
           </div>
           <PasswordModal
             show={this.props.viewState.get('showPasswordModal')}

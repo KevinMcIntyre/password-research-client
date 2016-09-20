@@ -20,6 +20,7 @@ const SET_PIN_NUMBER = 'SET_PIN_NUMBER';
 const TOGGLE_PIN_MODAL = 'TOGGLE_PIN_MODAL';
 const TOGGLE_PASSIMAGE_MODAL = 'TOGGLE_PASSIMAGE_MODAL';
 const SET_USER_HAS_IMAGES_TO_TRUE = 'SET_USER_HAS_IMAGES_TO_TRUE';
+const SET_SUBJECT_TRIALS = 'SET_SUBJECT_TRIALS';
 
 // ------------------------------------
 // Actions
@@ -89,9 +90,10 @@ export const loadSubjects = () => {
       });
   };
 };
+export const setSubjectTrials = (trials) => ({type: SET_SUBJECT_TRIALS, trials: trials});
 export const loadProfile = (userId) => {
   return dispatch => {
-    return agent
+    agent
       .get('http://localhost:7000/subject/profile/' + userId)
       .end((err, res) => {
         if (err) {
@@ -111,6 +113,16 @@ export const loadProfile = (userId) => {
           setTimeout(function() {
             dispatch(setLoadingState(false));
           }, 1000);
+        }
+      });
+    agent
+      .get('http://localhost:7000/subject/trials/' + userId)
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+        } else {
+          const response = JSON.parse(res.text);
+          dispatch(setSubjectTrials(response));
         }
       });
   };
@@ -175,13 +187,20 @@ const subjectListViewState = Map({
   newSubjectErrors: [],
   showPasswordModal: false,
   showPinModal: false,
-  showPassImageModal: false
+  showPassImageModal: false,
+  trials: []
 });
 // ------------------------------------
 // Reducer
 // ------------------------------------
 export default function subjectListViewReducer(state = subjectListViewState, action = null) {
   switch (action.type) {
+    case SET_SUBJECT_TRIALS: {
+      if (action.trials && typeof action.trials === 'object' && action.trials.length > 0) {
+        return state.set('trials', action.trials);
+      }
+      return state;
+    }
     case SET_USER_HAS_IMAGES_TO_TRUE: {
       let subjectMap = state.get('subjectMap');
       const subjectData = subjectMap.get(action.subjectId);
