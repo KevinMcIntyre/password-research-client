@@ -19,9 +19,11 @@ export default class TrialTable extends React.Component {
       </Cell>
     );
 
-    const StartTrialButtonCell = ({rowIndex, data, col, ...props}) => (
+    const TrialDetailsButtonCell = ({rowIndex, data, col, ...props}) => (
       <div className={classes.buttonCell}>
-        <Button bsStyle='success' bsSize='xsmall' onClick={() => {console.log('clicked')}}>View Details</Button>
+        <Button bsStyle='success' bsSize='xsmall' onClick={this.props.showTrialDetails.bind(null, data[rowIndex]['trialType'], data[rowIndex]['trialId'])}>
+          View Details
+        </Button>
       </div>
     );
 
@@ -33,7 +35,7 @@ export default class TrialTable extends React.Component {
 
     const ConfigLinkCell = ({rowIndex, data, col, ...props}) => (
       <Cell {...props}>
-        {(data[rowIndex][col] != null && data[rowIndex][col] != 'N/A') ? <Link to={{pathname: `/collections/${data[rowIndex]['configId']}`}}> {data[rowIndex][col]} </Link> : "N/A"}
+        {(data[rowIndex][col] != null && data[rowIndex][col] != 'N/A') ? <Link to={{pathname: `/configurations/${data[rowIndex]['configId']}`}}> {data[rowIndex][col]} </Link> : "N/A"}
       </Cell>
     );
 
@@ -90,7 +92,7 @@ export default class TrialTable extends React.Component {
         <Column
           align='center'
           header={<Cell>Details</Cell>}
-          cell={<StartTrialButtonCell data={this.props.trials} />}
+          cell={<TrialDetailsButtonCell data={this.props.trials} />}
           width={125}
         />
       </Table>

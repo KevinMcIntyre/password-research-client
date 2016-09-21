@@ -10,24 +10,28 @@ const agent = _agent_promise(_agent, _promise);
 // ------------------------------------
 // Constants
 // ------------------------------------
-const SET_SUBJECTS = 'SET_SUBJECTS';
 const ADD_SUBJECT = 'ADD_SUBJECT';
+const SET_SUBJECTS = 'SET_SUBJECTS';
 const SET_PROFILE = 'SET_PROFILE';
 const SET_NEW_SUBJECT_ERRORS = 'SET_NEW_SUBJECT_ERRORS';
 const SET_PASSWORD = 'SET_PASSWORD';
-const TOGGLE_PASSWORD_MODAL = 'TOGGLE_PASSWORD_MODAL';
 const SET_PIN_NUMBER = 'SET_PIN_NUMBER';
-const TOGGLE_PIN_MODAL = 'TOGGLE_PIN_MODAL';
-const TOGGLE_PASSIMAGE_MODAL = 'TOGGLE_PASSIMAGE_MODAL';
 const SET_USER_HAS_IMAGES_TO_TRUE = 'SET_USER_HAS_IMAGES_TO_TRUE';
 const SET_SUBJECT_TRIALS = 'SET_SUBJECT_TRIALS';
+const SET_TRIAL_DETAILS = 'SET_TRIAL_DEETS';
+const TOGGLE_PASSWORD_MODAL = 'TOGGLE_PASSWORD_MODAL';
+const TOGGLE_PIN_MODAL = 'TOGGLE_PIN_MODAL';
+const TOGGLE_PASSIMAGE_MODAL = 'TOGGLE_PASSIMAGE_MODAL';
+const TOGGLE_TRIAL_DETAILS_MODAL = 'TOGGLE_TRIAL_DETAILS_MODAL';
 
 // ------------------------------------
 // Actions
 // ------------------------------------
 export const setUserHasImagesToTrue = (subjectId) => ({type: SET_USER_HAS_IMAGES_TO_TRUE, subjectId: subjectId});
+export const toggleTrialDetailsModal = () => ({type: TOGGLE_TRIAL_DETAILS_MODAL});
 export const togglePassImageModal = () => ({type: TOGGLE_PASSIMAGE_MODAL});
 export const togglePinModal = () => ({type: TOGGLE_PIN_MODAL});
+export const setTrialDetails = (trialDetails) => ({type: SET_TRIAL_DETAILS, trialDetails: trialDetails});
 export const setPinNumber = (subjectId, pinNumber) => ({type: SET_PIN_NUMBER, subjectId: parseInt(subjectId, 10), pinNumber: pinNumber});
 export const savePinNumber = (request) => {
   return dispatch => {
@@ -155,19 +159,43 @@ export const saveProfile = (profile) => {
   };
 };
 
+export const loadTrialDetails = (trialType, trialId) => {
+  return dispatch => {
+    return agent
+      .post('http://localhost:7000/trial/details')
+      .send(JSON.stringify({
+        'trialId': trialId,
+        'isImageTrial': (trialType === 'Pass-Image')
+      }))
+      .set({
+        'Access-Control-Allow-Origin': 'localhost:7000'
+      })
+      .end((err, res) => {
+        if (err) {
+          console.log(err);
+        } else {
+          const response = JSON.parse(res.text);
+          dispatch(setTrialDetails(response));
+        }
+      });
+  };
+};
+
 export const actions = {
   loadSubjects,
   setSubjects,
   addSubject,
   loadProfile,
+  loadTrialDetails,
   setProfile,
   setErrorFields,
   saveProfile,
   savePassword,
-  togglePasswordModal,
   savePinNumber,
+  togglePasswordModal,
   togglePinModal,
-  togglePassImageModal
+  togglePassImageModal,
+  toggleTrialDetailsModal
 };
 
 // ------------------------------------
@@ -188,24 +216,33 @@ const subjectListViewState = Map({
   showPasswordModal: false,
   showPinModal: false,
   showPassImageModal: false,
-  trials: []
+  showTrialDetailsModal: false,
+  trials: [],
+  trialDetails: undefined
 });
 // ------------------------------------
 // Reducer
 // ------------------------------------
 export default function subjectListViewReducer(state = subjectListViewState, action = null) {
   switch (action.type) {
+    case SET_TRIAL_DETAILS: {
+      return state.set('trialDetails', action.trialDetails);
+    }
     case SET_SUBJECT_TRIALS: {
       if (action.trials && typeof action.trials === 'object' && action.trials.length > 0) {
         return state.set('trials', action.trials);
       }
-      return state;
+      return state.set('trials', []);
     }
     case SET_USER_HAS_IMAGES_TO_TRUE: {
       let subjectMap = state.get('subjectMap');
       const subjectData = subjectMap.get(action.subjectId);
       subjectMap = subjectMap.set(action.subjectId, subjectData.set('hasImages', true));
       return state.set('subjectMap', subjectMap);
+    }
+    case TOGGLE_TRIAL_DETAILS_MODAL: {
+      const modalState = state.get('showTrialDetailsModal');
+      return state.set('showTrialDetailsModal', !modalState);
     }
     case TOGGLE_PASSIMAGE_MODAL: {
       const modalState = state.get('showPassImageModal');

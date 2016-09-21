@@ -10,6 +10,7 @@ import classes from './SubjectView.scss';
 import PasswordModal from './ProfileManagementModals/PasswordModal.js';
 import PinModal from './ProfileManagementModals/PinModal.js';
 import PassImageModal from './ProfileManagementModals/PassImageModal.js';
+import TrialDetailsModal from './ProfileManagementModals/TrialDetailsModal.js';
 import TrialTable from './TrialTable.js';
 
 const mapStateToProps = (state) => ({
@@ -19,6 +20,12 @@ const mapStateToProps = (state) => ({
 export class SubjectProfileView extends React.Component {
   constructor() {
     super();
+    this.showTrialDetails = this.showTrialDetails.bind(this);
+  }
+
+  showTrialDetails(trialType, trialId) {
+    this.props.loadTrialDetails(trialType, trialId);
+    this.props.toggleTrialDetailsModal();
   }
 
   componentWillMount() {
@@ -128,7 +135,7 @@ export class SubjectProfileView extends React.Component {
           </div>
           <div className={classes.trialTableContainer}>
             <h4>Trial Results</h4>
-            <TrialTable trials={this.props.viewState.get('trials')} />
+            <TrialTable trials={this.props.viewState.get('trials')} showTrialDetails={this.showTrialDetails} />
           </div>
           <PasswordModal
             show={this.props.viewState.get('showPasswordModal')}
@@ -139,7 +146,7 @@ export class SubjectProfileView extends React.Component {
             strength={this.props.viewState.get('passwordStrength')}
             savePassword={this.props.savePassword}
             toggleModal={this.props.togglePasswordModal}
-            />
+          />
           <PinModal
             show={this.props.viewState.get('showPinModal')}
             subjectId={this.props.params.subjectId}
@@ -147,14 +154,19 @@ export class SubjectProfileView extends React.Component {
             pinNumber={this.props.viewState.get('pinNumber')}
             savePinNumber={this.props.savePinNumber}
             toggleModal={this.props.togglePinModal}
-            />
+          />
           <PassImageModal
             show={this.props.viewState.get('showPassImageModal')}
             subjectId={this.props.params.subjectId}
             subjectName={this.props.viewState.get('firstName') + ' ' + this.props.viewState.get('lastName')}
             collections={this.props.viewState.get('userCollections')}
             toggleModal={this.props.togglePassImageModal}
-            />
+          />
+          <TrialDetailsModal
+            show={this.props.viewState.get('showTrialDetailsModal')}
+            subjectName={this.props.viewState.get('firstName') + ' ' + this.props.viewState.get('lastName')}
+            toggleModal={this.props.toggleTrialDetailsModal}
+          />
         </div>
       </div>
     );
