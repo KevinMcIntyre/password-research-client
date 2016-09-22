@@ -175,7 +175,18 @@ export const loadTrialDetails = (trialType, trialId) => {
           console.log(err);
         } else {
           const response = JSON.parse(res.text);
-          dispatch(setTrialDetails(response));
+          const alteredResponse = response.map((resObj) => {
+            let selectedAlias = resObj['selectedAlias'];
+            let correctAlias = resObj['correctAlias'];
+            if (selectedAlias && selectedAlias.length < 1) {
+              selectedAlias = null;
+            }
+            if (correctAlias && correctAlias.length === 1 && correctAlias[0] === "") {
+              correctAlias = [];
+            }
+            return {...resObj, selectedAlias, correctAlias};
+          });
+          dispatch(setTrialDetails(alteredResponse));
         }
       });
   };
