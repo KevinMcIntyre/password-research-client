@@ -26,8 +26,7 @@ import TrialView from 'views/TrialView/TrialView';
 export default (
   <div>
     <Route path='/' component={CoreLayout}>
-      <IndexRoute component={HomeView} />
-      <Route path='test' component={TestSetupView} />
+      <IndexRoute component={TestSetupView} />
       <Route path='collections' component={CollectionView}>
         <IndexRoute component={CollectionSelectView}/>
         <Route path='new' component={NewCollectionView} />

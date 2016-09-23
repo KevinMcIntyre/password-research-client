@@ -24,8 +24,8 @@ export class SubjectProfileView extends React.Component {
   }
 
   showTrialDetails(trialType, trialId) {
-    this.props.loadTrialDetails(trialType, trialId);
     this.props.toggleTrialDetailsModal();
+    this.props.loadTrialDetails(trialType, trialId);
   }
 
   componentWillMount() {
@@ -166,6 +166,8 @@ export class SubjectProfileView extends React.Component {
             show={this.props.viewState.get('showTrialDetailsModal')}
             subjectName={this.props.viewState.get('firstName') + ' ' + this.props.viewState.get('lastName')}
             toggleModal={this.props.toggleTrialDetailsModal}
+            trialDetails={this.props.viewState.get('trialDetails')}
+            trialDetailsLoading={this.props.viewState.get('trialDetailsLoading')}
           />
         </div>
       </div>

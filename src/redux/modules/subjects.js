@@ -23,10 +23,12 @@ const TOGGLE_PASSWORD_MODAL = 'TOGGLE_PASSWORD_MODAL';
 const TOGGLE_PIN_MODAL = 'TOGGLE_PIN_MODAL';
 const TOGGLE_PASSIMAGE_MODAL = 'TOGGLE_PASSIMAGE_MODAL';
 const TOGGLE_TRIAL_DETAILS_MODAL = 'TOGGLE_TRIAL_DETAILS_MODAL';
+const SET_TRIAL_DETAILS_LOADING = 'SET_TRIAL_DETAILS_LOADING';
 
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const setTrialDetailsLoading = (loading) => ({type: SET_TRIAL_DETAILS_LOADING, loading: loading});
 export const setUserHasImagesToTrue = (subjectId) => ({type: SET_USER_HAS_IMAGES_TO_TRUE, subjectId: subjectId});
 export const toggleTrialDetailsModal = () => ({type: TOGGLE_TRIAL_DETAILS_MODAL});
 export const togglePassImageModal = () => ({type: TOGGLE_PASSIMAGE_MODAL});
@@ -188,6 +190,11 @@ export const loadTrialDetails = (trialType, trialId) => {
           });
           dispatch(setTrialDetails(alteredResponse));
         }
+      })
+      .then(() => {
+        setTimeout(() => {
+          dispatch(setTrialDetailsLoading(false));
+        }, 1000)
       });
   };
 };
@@ -206,7 +213,8 @@ export const actions = {
   togglePasswordModal,
   togglePinModal,
   togglePassImageModal,
-  toggleTrialDetailsModal
+  toggleTrialDetailsModal,
+  setTrialDetailsLoading
 };
 
 // ------------------------------------
@@ -229,6 +237,7 @@ const subjectListViewState = Map({
   showPassImageModal: false,
   showTrialDetailsModal: false,
   trials: [],
+  trialDetailsLoading: true,
   trialDetails: undefined
 });
 // ------------------------------------
@@ -236,6 +245,9 @@ const subjectListViewState = Map({
 // ------------------------------------
 export default function subjectListViewReducer(state = subjectListViewState, action = null) {
   switch (action.type) {
+    case SET_TRIAL_DETAILS_LOADING: {
+      return state.set('trialDetailsLoading', action.loading);
+    }
     case SET_TRIAL_DETAILS: {
       return state.set('trialDetails', action.trialDetails);
     }
@@ -253,7 +265,7 @@ export default function subjectListViewReducer(state = subjectListViewState, act
     }
     case TOGGLE_TRIAL_DETAILS_MODAL: {
       const modalState = state.get('showTrialDetailsModal');
-      return state.set('showTrialDetailsModal', !modalState);
+      return state.set('showTrialDetailsModal', !modalState).set('trialDetailsLoading', true);
     }
     case TOGGLE_PASSIMAGE_MODAL: {
       const modalState = state.get('showPassImageModal');

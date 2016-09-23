@@ -11,7 +11,7 @@ export default class TopNav extends React.Component {
     let navItems = (
       <Navbar.Collapse>
         <Nav pullRight={true}>
-          <LinkContainer to={{pathname: '/test'}}>
+          <LinkContainer to={{pathname: '/'}}>
             <NavItem eventKey={1}>Run a Test</NavItem>
           </LinkContainer>
           <NavDropdown eventKey={2} title='Administration' id='basic-nav-dropdown'>
