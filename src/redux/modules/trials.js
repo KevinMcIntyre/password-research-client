@@ -149,7 +149,7 @@ export const stopTrial = (trialId) => {
 };
 export const redirectToTestSetup = () => {
   return dispatch => {
-    dispatch(push('/test'));
+    dispatch(push('/'));
   }
 };
 

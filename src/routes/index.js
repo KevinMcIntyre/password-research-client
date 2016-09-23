@@ -7,7 +7,6 @@ import { Route, IndexRoute, Redirect } from 'react-router';
 // very easy to navigate to files regardless of how deeply nested
 // your current file is.
 import CoreLayout from 'layouts/CoreLayout/CoreLayout';
-import HomeView from 'views/HomeView/HomeView';
 import TestSetupView from 'views/TestView/TestSetupView';
 import SubjectView from 'views/SubjectView/SubjectView';
 import SubjectSelectView from 'views/SubjectView/SubjectSelectView';
