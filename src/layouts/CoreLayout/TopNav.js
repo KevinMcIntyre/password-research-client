@@ -24,6 +24,9 @@ export default class TopNav extends React.Component {
             <LinkContainer to={{pathname: '/configurations'}}>
               <MenuItem eventKey={2.3}>Test Configurations</MenuItem>
             </LinkContainer>
+            <MenuItem eventKey={2.4} onClick={() => {
+              window.location.href='http://localhost:7000/export'
+            }}>Export Data</MenuItem>
           </NavDropdown>
         </Nav >
       </Navbar.Collapse>
