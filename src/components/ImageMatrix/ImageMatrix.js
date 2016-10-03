@@ -59,7 +59,7 @@ export default class ImageMatrix extends React.Component {
     return (
       <div className={classes.matrix}>
         <div className={classes.matrixStatus}>
-          <h1>Verification Stage {this.props.currentStage} of {this.props.totalStages}</h1>
+          <h1 className={classes.matrixHeader}>Verification Stage {this.props.currentStage} of {this.props.totalStages}</h1>
         </div>
         {matrix}
       </div>
