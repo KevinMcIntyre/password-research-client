@@ -24,6 +24,7 @@ const SET_TRIALS = 'SET_TRIALS';
 const ADD_TRIAL = 'ADD_TRIAL';
 const POP_TRIAL = 'POP_TRIAL';
 const SET_ALLOWED_ATTEMPTS = 'SET_ALLOWED_ATTEMPTS';
+const SET_SUBJECT_ID = 'SET_SUBJECT_ID';
 
 // ------------------------------------
 // Wizard Stage Constants
@@ -42,6 +43,7 @@ export const wizardStages = {
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const setSubjectId = (subjectId) => ({type: SET_SUBJECT_ID, subjectId: subjectId});
 export const addTrial = (trial) => ({type: ADD_TRIAL, trial: trial});
 export const setTrials = (trials) => ({type: SET_TRIALS, trials: trials ? trials : []});
 export const getTrials = () => {
@@ -131,6 +133,8 @@ export const selectSubject = (subjectId, subjectData) => {
     if (!subjectId) {
       dispatch(setSubject(undefined));
     } else {
+      // Set the subject ID immediately so that the dropdown updates right away
+      dispatch(setSubjectId(subjectId));
       let req = agent.get('http://localhost:7000/subject/images/' + subjectId);
       return req.set({
         'Access-Control-Allow-Origin': 'localhost:7000'
@@ -247,6 +251,13 @@ const testViewState = Immutable.Map({
 // ------------------------------------
 export default function testViewReducer(state = testViewState, action = null) {
   switch (action.type) {
+    case SET_SUBJECT_ID: {
+      return state
+        .set('subjectId', action.subjectId)
+        .set('subjectHasPassword', false)
+        .set('subjectHasPin', false)
+        .set('subjectHasImages', false);
+    }
     case SET_ALLOWED_ATTEMPTS: {
       if (action.value === '') {
         return state.set('attemptsAllowed', '');
@@ -429,8 +440,6 @@ export default function testViewReducer(state = testViewState, action = null) {
           }
         }
       }
-
-
       return state;
     }
     case SET_TEST: {
