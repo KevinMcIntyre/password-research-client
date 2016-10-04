@@ -5,4 +5,5 @@ Note: Node.js is required to build this project. Although any version >= 4.6.x s
 Build instructions:
 
 $ npm install
+
 $ npm start
