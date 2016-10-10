@@ -98,6 +98,14 @@ export class SubjectProfileView extends React.Component {
                   </td>
                 </tr>
                 <tr>
+                  <td className={classes.optionKey}>
+                    Sex:
+                  </td>
+                  <td>
+                    {this.props.viewState.get("sex") === 'm' ? 'Male' : this.props.viewState.get("sex") === 'f' ? 'Female' : 'Other'}
+                  </td>
+                </tr>
+                <tr>
                   <th>
                     Authorization Credentials
                   </th>

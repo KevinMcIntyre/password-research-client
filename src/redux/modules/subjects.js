@@ -24,10 +24,12 @@ const TOGGLE_PIN_MODAL = 'TOGGLE_PIN_MODAL';
 const TOGGLE_PASSIMAGE_MODAL = 'TOGGLE_PASSIMAGE_MODAL';
 const TOGGLE_TRIAL_DETAILS_MODAL = 'TOGGLE_TRIAL_DETAILS_MODAL';
 const SET_TRIAL_DETAILS_LOADING = 'SET_TRIAL_DETAILS_LOADING';
+const SET_SEX = "SET_SEX";
 
 // ------------------------------------
 // Actions
 // ------------------------------------
+export const setSex = (sex) => ({type: SET_SEX, sex: sex});
 export const setTrialDetailsLoading = (loading) => ({type: SET_TRIAL_DETAILS_LOADING, loading: loading});
 export const setUserHasImagesToTrue = (subjectId) => ({type: SET_USER_HAS_IMAGES_TO_TRUE, subjectId: subjectId});
 export const toggleTrialDetailsModal = () => ({type: TOGGLE_TRIAL_DETAILS_MODAL});
@@ -111,6 +113,7 @@ export const loadProfile = (userId) => {
             lastName: response.LastName,
             email: response.Email,
             birthday: response.Birthday,
+            sex: response.Sex,
             password: response.Password.Valid ? response.Password.String : undefined,
             passwordStrength: response.PasswordStrength.Valid ? response.PasswordStrength.Int64 : undefined,
             passwordEntropy: response.PasswordEntropy.Valid ? response.PasswordEntropy.Float64 : undefined,
@@ -141,7 +144,8 @@ export const saveProfile = (profile) => {
         'firstName': profile.firstName,
         'lastName': profile.lastName,
         'email': profile.email,
-        'birthday': profile.birthday
+        'birthday': profile.birthday,
+        'sex': profile.sex
       }))
       .set({
         'Access-Control-Allow-Origin': 'localhost:7000'
@@ -214,7 +218,8 @@ export const actions = {
   togglePinModal,
   togglePassImageModal,
   toggleTrialDetailsModal,
-  setTrialDetailsLoading
+  setTrialDetailsLoading,
+  setSex
 };
 
 // ------------------------------------
@@ -227,6 +232,7 @@ const subjectListViewState = Map({
   lastName: undefined,
   email: undefined,
   birthday: undefined,
+  sex: undefined,
   password: undefined,
   passwordEntropy: undefined,
   passwordStrength: undefined,
@@ -245,6 +251,9 @@ const subjectListViewState = Map({
 // ------------------------------------
 export default function subjectListViewReducer(state = subjectListViewState, action = null) {
   switch (action.type) {
+    case SET_SEX: {
+      return state.set('sex', action.sex);
+    }
     case SET_TRIAL_DETAILS_LOADING: {
       return state.set('trialDetailsLoading', action.loading);
     }
@@ -341,6 +350,7 @@ export default function subjectListViewReducer(state = subjectListViewState, act
         .set('lastName', action.profile.lastName)
         .set('email', action.profile.email)
         .set('birthday', action.profile.birthday)
+        .set('sex', action.profile.sex)
         .set('password', action.profile.password)
         .set('passwordStrength', action.profile.passwordStrength)
         .set('passwordEntropy', action.profile.passwordEntropy)

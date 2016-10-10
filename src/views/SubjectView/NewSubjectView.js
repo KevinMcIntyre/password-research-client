@@ -22,6 +22,11 @@ export class NewSubjectView extends React.Component {
     this.clearForm = this.clearForm.bind(this);
     this.handleSave = this.handleSave.bind(this);
     this.validateProfile = this.validateProfile.bind(this);
+    this.changeSubjectSex = this.changeSubjectSex.bind(this);
+  }
+
+  changeSubjectSex() {
+
   }
 
   clearForm() {
@@ -37,7 +42,8 @@ export class NewSubjectView extends React.Component {
       firstName: this.refs.firstName.getValue(),
       lastName: this.refs.lastName.getValue(),
       email: this.refs.email.getValue(),
-      birthday: this.refs.birthday.getValue()
+      birthday: this.refs.birthday.getValue(),
+      sex: this.props.viewState.get('sex')
     };
     const issues = this.validateProfile(profile);
     if (issues.length > 0) {
@@ -62,6 +68,9 @@ export class NewSubjectView extends React.Component {
     }
     if (isBlank(profile.birthday) || !isValidDate(profile.birthday)) {
       issues.push('birthday');
+    }
+    if (!profile.sex) {
+      issues.push('sex');
     }
     return issues;
   }
@@ -129,23 +138,22 @@ export class NewSubjectView extends React.Component {
                     Sex
                   </span>
               </label>
+              <br/>
               <Input ref='sexMale' className={classes.radioButton} name='test' type='radio' standAlone={true}
-                     label='Male' value='m' checked={true}
-                     onChange={()=> {
-                       console.log("change")
-                     }}              />
+                     label='Male' value='m' checked={this.props.viewState.get('sex') === 'm'}
+                     onChange={this.props.setSex.bind(null, 'm')}            />
               <Input ref='sexFemale' className={classes.radioButton} name='test' type='radio' standAlone={true}
-                     label='Female' value='f' checked={false}
-                     onChange={()=> {
-                       console.log("change")
-                     }}              />
+                     label='Female' value='f' checked={this.props.viewState.get('sex') === 'f'}
+                     onChange={this.props.setSex.bind(null, 'f')}             />
               <Input ref='sexOther' className={classes.radioButton} name='test' type='radio' standAlone={true}
-                     label='Other' value='o' checked={false}
-                     onChange={()=> {
-                       console.log("change")
-                     }}
+                     label='Other' value='o' checked={this.props.viewState.get('sex') === 'o'}
+                     onChange={this.props.setSex.bind(null, 'o')}
               />
             </div>
+            {
+              this.props.viewState.get('newSubjectErrors').indexOf('sex') > -1
+                ? <p className={classes.errorMsg}>A sex must be assigned to the subject.</p> : <span></span>
+            }
             <div className={classes.formButtons}>
               <Button className={classes.saveButton} bsStyle={'success'} onClick={this.handleSave}>Save Subject</Button>
               <Button onClick={this.clearForm}>Clear Form</Button>
