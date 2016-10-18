@@ -165,6 +165,11 @@ div.radioContainer > label {
   margin-bottom: 0 !important;
 }
 
+div.radioContainer > .form-group {
+  display: inline-block;
+  margin-left: 15px;
+}
+
 
 .radioButton {
   display: inline-block;

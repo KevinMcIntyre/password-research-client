@@ -123,6 +123,29 @@ export class NewSubjectView extends React.Component {
               this.props.viewState.get('newSubjectErrors').indexOf('birthday') > -1
                 ? <p className={classes.errorMsg}>A date must be entered in MM/DD/YYYY format.</p> : <span></span>
             }
+            <div className={classes.radioContainer}>
+              <label className='control-label'>
+                  <span>
+                    Sex
+                  </span>
+              </label>
+              <Input ref='sexMale' className={classes.radioButton} name='test' type='radio' standAlone={true}
+                     label='Male' value='m' checked={true}
+                     onChange={()=> {
+                       console.log("change")
+                     }}              />
+              <Input ref='sexFemale' className={classes.radioButton} name='test' type='radio' standAlone={true}
+                     label='Female' value='f' checked={false}
+                     onChange={()=> {
+                       console.log("change")
+                     }}              />
+              <Input ref='sexOther' className={classes.radioButton} name='test' type='radio' standAlone={true}
+                     label='Other' value='o' checked={false}
+                     onChange={()=> {
+                       console.log("change")
+                     }}
+              />
+            </div>
             <div className={classes.formButtons}>
               <Button className={classes.saveButton} bsStyle={'success'} onClick={this.handleSave}>Save Subject</Button>
               <Button onClick={this.clearForm}>Clear Form</Button>

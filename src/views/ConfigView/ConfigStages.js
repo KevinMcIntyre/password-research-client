@@ -35,7 +35,7 @@ export default class ConfigStages extends React.Component {
             These stages were generated randomly and include no subject pass-images.<br/>
             To replace an image in the stage, click on it for options.<br/>
           </p>
-          {this.props.viewState.get('assignUserImgError') ? 
+          {this.props.viewState.get('assignUserImgError') ?
             <p className={configClasses.passImgErrorMsg}>A users pass-image must be assigned within the matrix.</p> : ''
           }
         </div>
@@ -50,7 +50,7 @@ export default class ConfigStages extends React.Component {
                        random={true}
             />
         </div>
-        
+
         <div className={classes.buttonGroup}>
           <Button className={classes.backButton} bsSize={'large'} onClick={this.props.decrementWizard}>Back</Button>
           <Button bsSize={'large'} onClick={this.props.incrementWizard}>Next</Button>
