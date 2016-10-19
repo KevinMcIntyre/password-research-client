@@ -132,7 +132,7 @@ export class NewSubjectView extends React.Component {
               this.props.viewState.get('newSubjectErrors').indexOf('birthday') > -1
                 ? <p className={classes.errorMsg}>A date must be entered in MM/DD/YYYY format.</p> : <span></span>
             }
-            <div className={classes.radioContainer}>
+            <div className={classes.sexRadioContainer}>
               <label className='control-label'>
                   <span>
                     Sex

@@ -166,6 +166,24 @@ div.radioContainer > label {
 }
 
 div.radioContainer > div {
+  margin-right: 15px;
+  margin-bottom: 0;
+}
+
+.sexRadioContainer {
+  text-align: left;
+  display: inline-block;
+}
+
+div.sexRadioContainer > div:nth-child(2) {
+  margin-bottom: 0 !important;
+}
+
+div.sexRadioContainer > label {
+  margin-bottom: 0 !important;
+}
+
+div.sexRadioContainer > div {
   display: inline-block;
   margin-right: 15px;
   margin-bottom: 0;
